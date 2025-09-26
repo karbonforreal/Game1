@@ -1,0 +1,231 @@
+import { GameLoop } from './loop';
+import { Renderer } from './renderer';
+import { loadAssets } from './sprites';
+import { config, loadSettings } from './config';
+import { initAudio, updateVolume } from './audio';
+import { InputManager } from './input';
+import { TouchControls } from './touch';
+import { createPlayer, playerFire, setPlayerStart, updatePlayer, endAttack } from './player';
+import { createWeaponDefinitions, performAttack } from './weapons';
+import { level1 } from './level1';
+import { Raycaster } from './raycaster';
+import { createEnemy, updateEnemies } from './enemy';
+import { createPickup, tryCollect } from './pickups';
+import type { EnemyInstance, PickupInstance, Settings, SpriteRenderable } from './types';
+import { UIManager } from './ui';
+
+function injectStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    @font-face {
+      font-family: 'Press Start 2P';
+      font-style: normal;
+      font-weight: 400;
+      src: local('Press Start 2P'), url('https://fonts.gstatic.com/s/pressstart2p/v12/e3t4euO8T-267oIAQAu6jDQyK3nD-zP-W4Cq7z0.woff2') format('woff2');
+    }
+    .ui-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 5, 12, 0.85);
+      z-index: 50;
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .ui-overlay .panel {
+      background: rgba(20, 20, 40, 0.95);
+      padding: 32px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 320px;
+      text-align: center;
+    }
+    .ui-overlay button {
+      padding: 12px 16px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .ui-overlay label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .ui-overlay input[type="range"] {
+      flex: 1;
+    }
+    .ui-overlay .actions {
+      display: flex;
+      justify-content: space-between;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+async function bootstrap() {
+  injectStyles();
+  const app = document.getElementById('app');
+  if (!app) throw new Error('No app container');
+  let settings = loadSettings();
+  initAudio(settings);
+
+  const renderer = new Renderer(app);
+  renderer.resize(settings.dynamicResolution);
+
+  const assets = await loadAssets();
+  const weapons = createWeaponDefinitions(assets.weapons);
+  const player = createPlayer(weapons);
+  setPlayerStart(player, level1.playerStart.x, level1.playerStart.y, 0);
+  const raycaster = new Raycaster(level1);
+  raycaster.setTextures(assets.textures);
+
+  const enemies: EnemyInstance[] = level1.enemies.map((spawn, index) =>
+    createEnemy(
+      {
+        id: spawn.type,
+        sprite: assets.enemies[spawn.type],
+        speed: 1.4,
+        health: 40,
+        damage: 8,
+        attackCooldown: 0.8,
+        aggroRange: 8
+      },
+      spawn.position,
+      index
+    )
+  );
+
+  const pickups: PickupInstance[] = level1.pickups.map((item, index) =>
+    createPickup(
+      {
+        id: item.type,
+        type: item.type as any,
+        amount: item.type === 'health' ? 25 : item.type === 'armor' ? 20 : 12,
+        sprite: assets.pickups[item.type]
+      },
+      item.position,
+      index
+    )
+  );
+
+  const input = new InputManager(settings);
+  const touchControls = new TouchControls(settings);
+
+  const ui = new UIManager(settings, {
+    onResume: () => {
+      paused = false;
+    },
+    onSettingsChanged: (newSettings) => {
+      settings = { ...newSettings };
+      input.updateSettings(settings);
+      touchControls.updateSettings(settings);
+      updateVolume(settings);
+      renderer.resize(settings.dynamicResolution);
+    }
+  });
+
+  let paused = false;
+  let lastAttackTime = 0;
+  let hudState = { fps: 60, showDebug: false, messages: [] };
+  let lastRender = performance.now();
+
+  const loop = new GameLoop((delta, time) => {
+    if (paused) return;
+    const keyboardState = input.getState(delta);
+    const touchState = touchControls.getState();
+    const combined = {
+      forward: keyboardState.forward + (touchState.forward ?? 0),
+      strafe: keyboardState.strafe + (touchState.strafe ?? 0),
+      turning: keyboardState.turning + (touchState.turning ?? 0),
+      looking: 0,
+      fire: keyboardState.fire || !!touchState.fire,
+      interact: keyboardState.interact || !!touchState.interact,
+      weaponSlot: touchState.weaponSlot ?? keyboardState.weaponSlot,
+      pauseRequested: keyboardState.pauseRequested || !!touchState.pauseRequested,
+      toggleDebug: keyboardState.toggleDebug || !!touchState.toggleDebug
+    };
+
+    if (combined.pauseRequested) {
+      paused = true;
+      ui.showPause();
+      return;
+    }
+
+    if (combined.toggleDebug) {
+      hudState.showDebug = !hudState.showDebug;
+    }
+
+    updatePlayer(player, combined, delta, settings, level1);
+    updateEnemies(enemies, delta, level1, player);
+
+    if (combined.fire && time - lastAttackTime > 0.05) {
+      const weapon = playerFire(player, time);
+      if (weapon) {
+        performAttack(weapon, player, enemies);
+        lastAttackTime = time;
+      }
+    }
+
+    if (!combined.fire && player.attackTimer <= 0 && player.isAttacking) {
+      endAttack(player);
+    }
+
+    for (const pickup of pickups) {
+      if (!pickup.collected) {
+        tryCollect(pickup, player);
+      }
+    }
+  }, (alpha, time) => {
+    const now = performance.now();
+    const deltaMs = now - lastRender;
+    lastRender = now;
+    hudState.fps = 1000 / deltaMs;
+    if (hudState.fps < config.lowFPSThreshold && settings.dynamicResolution > config.resolutionScaleMin) {
+      settings.dynamicResolution = Math.max(config.resolutionScaleMin, settings.dynamicResolution - config.resolutionStep);
+      renderer.resize(settings.dynamicResolution);
+    } else if (hudState.fps > config.lowFPSThreshold + 15 && settings.dynamicResolution < config.resolutionScaleMax) {
+      settings.dynamicResolution = Math.min(config.resolutionScaleMax, settings.dynamicResolution + config.resolutionStep);
+      renderer.resize(settings.dynamicResolution);
+    }
+
+    const spriteList: SpriteRenderable[] = [];
+    for (const enemy of enemies) {
+      if (!enemy.alive) continue;
+      spriteList.push({
+        id: enemy.id,
+        image: enemy.definition.sprite,
+        position: enemy.position,
+        size: 1,
+        isBillboard: true,
+        distance: 0,
+        type: 'enemy'
+      });
+    }
+    for (const pickup of pickups) {
+      if (pickup.collected) continue;
+      spriteList.push({
+        id: pickup.id,
+        image: pickup.definition.sprite,
+        position: pickup.position,
+        size: 0.7,
+        offsetY: 20,
+        isBillboard: true,
+        distance: 0,
+        type: 'pickup'
+      });
+    }
+
+    renderer.render(raycaster, player, spriteList, hudState, player.weapons[player.activeWeapon].definition, settings);
+  });
+
+  window.addEventListener('resize', () => renderer.resize(settings.dynamicResolution));
+  loop.start();
+}
+
+bootstrap();
