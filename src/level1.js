@@ -30,7 +30,7 @@ export const level1 = {
   height: mapRows.length,
   tiles: mapRows.flatMap((row) => row.split('').map((cell) => Number(cell))),
   textureLookup: [0, 0],
-  playerStart: { x: 2.5, y: 2.5 },
+  playerStart: { x: 3.5, y: 3.5 },
   enemies: [
     { position: { x: 6.5, y: 6.5 }, type: 'grunt' },
     { position: { x: 10.5, y: 4.5 }, type: 'grunt' },
