@@ -18,6 +18,9 @@ export class TouchControls {
     this.lookPad = document.createElement('div');
     this.lookPad.className = 'touch-lookpad';
 
+    this.rightControls = document.createElement('div');
+    this.rightControls.className = 'touch-right-controls';
+
     this.fireButton = this.createButton('Fire');
     this.interactButton = this.createButton('Interact');
     const weapon1 = this.createButton('1');
@@ -64,10 +67,9 @@ export class TouchControls {
     }
 
     this.container.appendChild(this.joystick);
-    this.container.appendChild(this.lookPad);
-    const buttonCluster = document.createElement('div');
-    buttonCluster.className = 'touch-buttons';
-    buttonCluster.style.cssText = 'position:absolute;right:4%;bottom:18%;display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:auto;';
+    this.buttonCluster = document.createElement('div');
+    this.buttonCluster.className = 'touch-buttons';
+    this.buttonCluster.style.cssText = 'display:flex;flex-direction:column;gap:12px;pointer-events:auto;';
     const weaponRow = document.createElement('div');
     weaponRow.style.cssText = 'display:flex;gap:10px;';
     const weaponIds = ['punch', 'pistol', 'knife'];
@@ -86,10 +88,13 @@ export class TouchControls {
     actionRow.style.cssText = 'display:flex;gap:12px;';
     actionRow.appendChild(this.interactButton);
     actionRow.appendChild(this.fireButton);
-    buttonCluster.appendChild(weaponRow);
-    buttonCluster.appendChild(actionRow);
-    buttonCluster.appendChild(this.pauseButton);
-    this.container.appendChild(buttonCluster);
+    this.buttonCluster.appendChild(weaponRow);
+    this.buttonCluster.appendChild(actionRow);
+    this.buttonCluster.appendChild(this.pauseButton);
+
+    this.rightControls.appendChild(this.lookPad);
+    this.rightControls.appendChild(this.buttonCluster);
+    this.container.appendChild(this.rightControls);
 
     document.body.appendChild(this.container);
     document.body.appendChild(this.toggleButton);
@@ -239,9 +244,17 @@ export class TouchControls {
 
   applyStyles() {
     const baseOpacity = this.settings.uiOpacity;
-    this.joystick.style.cssText = `position:absolute;bottom:20%;${this.settings.leftHanded ? 'right:6%;' : 'left:6%;'}pointer-events:auto;border-radius:50%;background:rgba(40,40,60,${baseOpacity});backdrop-filter:blur(6px);touch-action:none;display:flex;align-items:center;justify-content:center;`;
+    const joystickSide = this.settings.leftHanded ? 'right' : 'left';
+    const joystickOppositeSide = this.settings.leftHanded ? 'left' : 'right';
+    this.joystick.style.cssText = `position:absolute;bottom:20%;${joystickSide}:6%;${joystickOppositeSide}:auto;pointer-events:auto;border-radius:50%;background:rgba(40,40,60,${baseOpacity});backdrop-filter:blur(6px);touch-action:none;display:flex;align-items:center;justify-content:center;`;
     this.joystickKnob.style.cssText = 'background:rgba(255,255,255,0.7);border-radius:50%;transition:background 0.1s;';
-    this.lookPad.style.cssText = `position:absolute;bottom:22%;${this.settings.leftHanded ? 'left:6%;' : 'right:6%;'}width:${this.settings.joystickSize * 1.1}px;height:${this.settings.joystickSize * 1.1}px;border-radius:18px;background:rgba(40,40,60,${baseOpacity});pointer-events:auto;touch-action:none;`;
+    const lookPadSize = this.settings.joystickSize * 1.1;
+    this.lookPad.style.cssText = `width:${lookPadSize}px;height:${lookPadSize}px;border-radius:18px;background:rgba(40,40,60,${baseOpacity});pointer-events:auto;touch-action:none;`;
+    const controlsSide = this.settings.leftHanded ? 'left' : 'right';
+    const controlsOppositeSide = this.settings.leftHanded ? 'right' : 'left';
+    const alignItems = this.settings.leftHanded ? 'flex-start' : 'flex-end';
+    this.rightControls.style.cssText = `position:absolute;bottom:18%;${controlsSide}:4%;${controlsOppositeSide}:auto;display:flex;flex-direction:column;align-items:${alignItems};gap:18px;pointer-events:auto;`;
+    this.buttonCluster.style.alignItems = alignItems;
     this.fireButton.style.background = `rgba(255,120,80,${baseOpacity + 0.2})`;
     this.interactButton.style.background = `rgba(120,200,255,${baseOpacity + 0.2})`;
     this.pauseButton.style.cssText = 'width:64px;height:64px;border-radius:18px;border:none;background:rgba(255,255,255,0.6);font-weight:bold;';
