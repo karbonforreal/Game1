@@ -12,6 +12,8 @@ export class InputManager {
   private interact = false;
   private pause = false;
   private debugToggle = false;
+  private turnLeft = false;
+  private turnRight = false;
   private wheelWeapon: Settings['leftHanded'];
 
   constructor(settings: Settings) {
@@ -68,9 +70,13 @@ export class InputManager {
     const key = event.key.toLowerCase();
     switch (key) {
       case 'w':
+      case 'arrowup':
+        if (event.key === 'ArrowUp') event.preventDefault();
         this.keys['forward'] = down;
         break;
       case 's':
+      case 'arrowdown':
+        if (event.key === 'ArrowDown') event.preventDefault();
         this.keys['back'] = down;
         break;
       case 'a':
@@ -78,6 +84,14 @@ export class InputManager {
         break;
       case 'd':
         this.keys['right'] = down;
+        break;
+      case 'arrowleft':
+        event.preventDefault();
+        this.turnLeft = down;
+        break;
+      case 'arrowright':
+        event.preventDefault();
+        this.turnRight = down;
         break;
       case ' ':
         this.fireHeld = down;
@@ -112,6 +126,8 @@ export class InputManager {
     this.interact = false;
     this.pause = false;
     this.debugToggle = false;
+    this.turnLeft = false;
+    this.turnRight = false;
   }
 
   consumeWeaponSlot(): InputState['weaponSlot'] {
@@ -141,7 +157,9 @@ export class InputManager {
   getState(delta: number): InputState {
     const forward = (this.keys['forward'] ? 1 : 0) - (this.keys['back'] ? 1 : 0);
     const strafe = (this.keys['right'] ? 1 : 0) - (this.keys['left'] ? 1 : 0);
-    const turning = this.pointerLocked ? clamp(this.mouseDelta * this.settings.lookSensitivity, -0.2, 0.2) : 0;
+    const pointerTurn = this.pointerLocked ? clamp(this.mouseDelta * this.settings.lookSensitivity, -0.2, 0.2) : 0;
+    const keyboardTurn = ((this.turnRight ? 1 : 0) - (this.turnLeft ? 1 : 0)) * 0.05;
+    const turning = clamp(pointerTurn + keyboardTurn, -0.3, 0.3);
     const state: InputState = {
       forward,
       strafe,
