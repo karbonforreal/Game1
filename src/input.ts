@@ -36,7 +36,9 @@ export class InputManager {
       }
       if (!this.pointerLocked && this.shouldPointerLock()) {
         const canvas = document.querySelector('canvas');
-        canvas?.requestPointerLock?.();
+        if (canvas && typeof canvas.requestPointerLock === 'function') {
+          canvas.requestPointerLock();
+        }
       }
     });
     window.addEventListener('mouseup', (e) => {
@@ -62,7 +64,12 @@ export class InputManager {
   }
 
   private shouldPointerLock(): boolean {
-    return !('ontouchstart' in window) && !this.settings.touchEnabled;
+    const pointerLockAvailable =
+      typeof document !== 'undefined' &&
+      (typeof document.body?.requestPointerLock === 'function' ||
+        typeof document.documentElement?.requestPointerLock === 'function');
+
+    return pointerLockAvailable && !this.settings.touchEnabled;
   }
 
   private onKey(event: KeyboardEvent, down: boolean) {
