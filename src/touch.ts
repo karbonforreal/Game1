@@ -322,10 +322,8 @@ export class TouchControls {
     }
     const move = this.getMoveVector();
     const forward = -move.y;
-    const turningFromMove = this.lookPointer ? 0 : clamp(move.x * 0.24, -0.35, 0.35);
-    const strafe = this.lookPointer ? move.x : 0;
-    const turningFromLookPad = clamp(this.lookDelta * 0.003, -0.45, 0.45);
-    const turning = clamp(turningFromMove + turningFromLookPad, -0.45, 0.45);
+    const strafe = move.x;
+    const turning = clamp(this.lookDelta * 0.003, -0.45, 0.45);
     const fire = this.fireHeld;
     const interact = this.interactHeld;
     const weaponSlot = this.weaponQueued;
