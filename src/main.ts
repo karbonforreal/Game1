@@ -14,6 +14,7 @@ import { createPickup, tryCollect } from './pickups';
 import type { EnemyInstance, HitMarker, PickupInstance, Settings, SpriteRenderable } from './types';
 import { UIManager } from './ui';
 import { findNearestOpenPosition } from './collisions';
+import { normalize } from './math';
 
 function injectStyles() {
   const style = document.createElement('style');
@@ -192,14 +193,23 @@ async function bootstrap() {
             y: player.position.y + (attack.position.y - player.position.y) * scale
           };
         }
-        const markerDuration = 0.25;
-        hitMarkers.push({
-          position: markerPosition,
-          distance: clampedDistance,
-          timer: markerDuration,
-          duration: markerDuration,
-          kind: attack.kind
-        });
+        let shouldAddMarker = true;
+        if (!attack.enemy && (weapon.id === 'punch' || weapon.id === 'knife')) {
+          const direction = normalize(player.direction);
+          const meleeWallHit = raycaster.cast(player.position, direction);
+          shouldAddMarker = meleeWallHit.distance <= 1;
+        }
+
+        if (shouldAddMarker) {
+          const markerDuration = 0.25;
+          hitMarkers.push({
+            position: markerPosition,
+            distance: clampedDistance,
+            timer: markerDuration,
+            duration: markerDuration,
+            kind: attack.kind
+          });
+        }
         lastAttackTime = time;
       }
     }
