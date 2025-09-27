@@ -164,7 +164,7 @@ export class InputManager {
   getState(delta: number): InputState {
     const forward = (this.keys['forward'] ? 1 : 0) - (this.keys['back'] ? 1 : 0);
     const strafe = (this.keys['right'] ? 1 : 0) - (this.keys['left'] ? 1 : 0);
-    const pointerTurn = this.pointerLocked ? clamp(this.mouseDelta * this.settings.lookSensitivity, -0.2, 0.2) : 0;
+    const pointerTurn = this.pointerLocked ? clamp(this.mouseDelta * 0.0025, -0.2, 0.2) : 0;
     const keyboardTurn = ((this.turnRight ? 1 : 0) - (this.turnLeft ? 1 : 0)) * 0.05;
     const turning = clamp(pointerTurn + keyboardTurn, -0.3, 0.3);
     const state: InputState = {

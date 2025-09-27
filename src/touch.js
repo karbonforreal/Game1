@@ -231,15 +231,14 @@ export class TouchControls {
     const size = this.settings.joystickSize;
     this.joystick.style.width = `${size}px`;
     this.joystick.style.height = `${size}px`;
-    this.joystickKnob.style.width = `${size * 0.4}px`;
-    this.joystickKnob.style.height = `${size * 0.4}px`;
+    const knobSize = size * 0.4;
     const move = this.getMoveVector();
-    const knobWidth = this.joystickKnob.offsetWidth || size * 0.4;
-    const knobHeight = this.joystickKnob.offsetHeight || size * 0.4;
-    const radius = (size - knobWidth) / 2;
-    const knobX = size / 2 - knobWidth / 2 + move.x * radius;
-    const knobY = size / 2 - knobHeight / 2 + move.y * radius;
-    this.joystickKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+    const radius = (size - knobSize) / 2;
+    const offsetX = move.x * radius;
+    const offsetY = move.y * radius;
+    this.joystickKnob.style.width = `${knobSize}px`;
+    this.joystickKnob.style.height = `${knobSize}px`;
+    this.joystickKnob.style.transform = `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px)`;
   }
 
   applyStyles() {
@@ -247,7 +246,8 @@ export class TouchControls {
     const joystickSide = this.settings.leftHanded ? 'right' : 'left';
     const joystickOppositeSide = this.settings.leftHanded ? 'left' : 'right';
     this.joystick.style.cssText = `position:absolute;bottom:20%;${joystickSide}:6%;${joystickOppositeSide}:auto;pointer-events:auto;border-radius:50%;background:rgba(40,40,60,${baseOpacity});backdrop-filter:blur(6px);touch-action:none;display:flex;align-items:center;justify-content:center;`;
-    this.joystickKnob.style.cssText = 'background:rgba(255,255,255,0.7);border-radius:50%;transition:background 0.1s;';
+    this.joystickKnob.style.cssText =
+      'position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);background:rgba(255,255,255,0.7);border-radius:50%;transition:background 0.1s;';
     const lookPadSize = this.settings.joystickSize * 1.1;
     this.lookPad.style.cssText = `width:${lookPadSize}px;height:${lookPadSize}px;border-radius:18px;background:rgba(40,40,60,${baseOpacity});pointer-events:auto;touch-action:none;`;
     const controlsSide = this.settings.leftHanded ? 'left' : 'right';
@@ -313,8 +313,10 @@ export class TouchControls {
     }
     const move = this.getMoveVector();
     const forward = -move.y;
-    const strafe = move.x;
-    const turning = clamp(this.lookDelta * this.settings.lookSensitivity * 0.2, -0.2, 0.2);
+    const turningFromMove = this.lookPointer ? 0 : clamp(-move.x * 0.24, -0.35, 0.35);
+    const strafe = this.lookPointer ? move.x : 0;
+    const turningFromLookPad = clamp(-this.lookDelta * 0.003, -0.45, 0.45);
+    const turning = clamp(turningFromMove + turningFromLookPad, -0.45, 0.45);
     const fire = this.fireHeld;
     const interact = this.interactHeld;
     const weaponSlot = this.weaponQueued;
