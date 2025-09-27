@@ -29,7 +29,7 @@ export class Renderer {
     this.depthBuffer = new Array(this.view.width).fill(0);
   }
 
-  render(raycaster, player, sprites, hud, weapon, settings) {
+  render(raycaster, player, sprites, hud, weapon, hitMarkers, settings) {
     const ctx = this.viewCtx;
     const width = this.view.width;
     const height = this.view.height;
@@ -124,6 +124,53 @@ export class Renderer {
           );
         }
       }
+    }
+
+    if (hitMarkers.length > 0) {
+      ctx.save();
+      ctx.lineCap = 'round';
+      const invDet = 1.0 / (planeX * dirY - dirX * planeY);
+      for (const marker of hitMarkers) {
+        if (marker.timer <= 0 || marker.duration <= 0) continue;
+        const fade = Math.max(0, Math.min(1, marker.timer / marker.duration));
+        if (fade <= 0) continue;
+
+        const markerX = marker.position.x - posX;
+        const markerY = marker.position.y - posY;
+        const transformX = invDet * (dirY * markerX - dirX * markerY);
+        const transformY = invDet * (-planeY * markerX + planeX * markerY);
+        if (transformY <= 0) continue;
+
+        const screenX = Math.floor((width / 2) * (1 + transformX / transformY));
+        if (screenX < 0 || screenX >= width) continue;
+
+        const bufferIndex = Math.min(width - 1, Math.max(0, screenX));
+        const depth = this.depthBuffer[bufferIndex] ?? Infinity;
+        if (transformY > depth + 0.0001) continue;
+
+        const projectedHeight = Math.abs(Math.floor(height / transformY));
+        const size = Math.max(2, Math.min(12, Math.floor(projectedHeight * 0.1) || 0));
+        const centerY = Math.floor(height / 2);
+
+        ctx.globalAlpha = fade;
+        ctx.strokeStyle = marker.kind === 'enemy' ? '#ff5a5f' : '#f2d16b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(screenX - size, centerY);
+        ctx.lineTo(screenX + size, centerY);
+        ctx.moveTo(screenX, centerY - size);
+        ctx.lineTo(screenX, centerY + size);
+        ctx.stroke();
+
+        const innerSize = Math.max(1, size * 0.5);
+        ctx.beginPath();
+        ctx.moveTo(screenX - innerSize, centerY - innerSize);
+        ctx.lineTo(screenX + innerSize, centerY + innerSize);
+        ctx.moveTo(screenX - innerSize, centerY + innerSize);
+        ctx.lineTo(screenX + innerSize, centerY - innerSize);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
     this.ctx.imageSmoothingEnabled = false;

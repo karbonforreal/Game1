@@ -127,3 +127,11 @@ export interface HUDMessage {
   text: string;
   timer: number;
 }
+
+export interface HitMarker {
+  position: Vec2;
+  distance: number;
+  timer: number;
+  duration: number;
+  kind: 'enemy' | 'wall';
+}
