@@ -54,6 +54,18 @@ function renderMinimap(
 
   const playerX = originX + player.position.x * tileWidth;
   const playerY = originY + player.position.y * tileHeight;
+  ctx.fillStyle = 'rgba(242, 201, 76, 0.12)';
+  ctx.beginPath();
+  ctx.moveTo(playerX, playerY);
+  const fovReach = 5;
+  const leftEdgeX = player.direction.x - player.plane.x;
+  const leftEdgeY = player.direction.y - player.plane.y;
+  const rightEdgeX = player.direction.x + player.plane.x;
+  const rightEdgeY = player.direction.y + player.plane.y;
+  ctx.lineTo(playerX + rightEdgeX * fovReach * tileWidth, playerY + rightEdgeY * fovReach * tileHeight);
+  ctx.lineTo(playerX + leftEdgeX * fovReach * tileWidth, playerY + leftEdgeY * fovReach * tileHeight);
+  ctx.closePath();
+  ctx.fill();
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
   ctx.arc(playerX, playerY, 4, 0, Math.PI * 2);

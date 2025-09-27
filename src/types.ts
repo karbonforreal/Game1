@@ -110,6 +110,7 @@ export interface SpriteRenderable {
   distance: number;
   type: 'enemy' | 'pickup';
   id: number;
+  anchor?: 'center' | 'floor';
 }
 
 export interface Settings {

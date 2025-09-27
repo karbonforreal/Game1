@@ -13,6 +13,7 @@ import { createEnemy, updateEnemies } from './enemy';
 import { createPickup, tryCollect } from './pickups';
 import type { EnemyInstance, PickupInstance, Settings, SpriteRenderable } from './types';
 import { UIManager } from './ui';
+import { findNearestWalkablePoint } from './spawn';
 
 function injectStyles() {
   const style = document.createElement('style');
@@ -109,7 +110,7 @@ async function bootstrap() {
         amount: item.type === 'health' ? 25 : item.type === 'armor' ? 20 : 12,
         sprite: assets.pickups[item.type]
       },
-      item.position,
+      findNearestWalkablePoint(level1, item.position),
       index
     )
   );
@@ -214,10 +215,10 @@ async function bootstrap() {
         image: pickup.definition.sprite,
         position: pickup.position,
         size: 0.7,
-        offsetY: 20,
         isBillboard: true,
         distance: 0,
-        type: 'pickup'
+        type: 'pickup',
+        anchor: 'floor'
       });
     }
 

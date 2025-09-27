@@ -83,10 +83,23 @@ export class Renderer {
 
       const spriteScreenX = Math.floor((width / 2) * (1 + transformX / transformY));
       const spriteHeight = Math.abs(Math.floor(height / transformY)) * sprite.size;
-      let drawStartY = -spriteHeight / 2 + height / 2 + (sprite.offsetY ?? 0);
-      let drawEndY = spriteHeight / 2 + height / 2 + (sprite.offsetY ?? 0);
+      const offsetY = sprite.offsetY ?? 0;
+      const anchor = sprite.anchor ?? 'center';
+      let drawStartY: number;
+      let drawEndY: number;
+
+      if (anchor === 'floor') {
+        const floorLine = Math.min(height, height / 2 + offsetY);
+        drawEndY = floorLine;
+        drawStartY = floorLine - spriteHeight;
+      } else {
+        drawStartY = -spriteHeight / 2 + height / 2 + offsetY;
+        drawEndY = spriteHeight / 2 + height / 2 + offsetY;
+      }
+
       if (drawStartY < 0) drawStartY = 0;
       if (drawEndY >= height) drawEndY = height;
+      if (drawEndY <= drawStartY) continue;
 
       const spriteWidth = Math.abs(Math.floor(height / transformY));
       let drawStartX = -spriteWidth / 2 + spriteScreenX;
