@@ -214,8 +214,8 @@ async function bootstrap() {
         id: pickup.id,
         image: pickup.definition.sprite,
         position: pickup.position,
-        size: 0.7,
-        offsetY: 20,
+        size: 0.65,
+        anchor: 'floor',
         isBillboard: true,
         distance: 0,
         type: 'pickup'
