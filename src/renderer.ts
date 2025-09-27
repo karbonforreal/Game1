@@ -89,8 +89,8 @@ export class Renderer {
       if (drawEndY >= height) drawEndY = height;
 
       const spriteWidth = Math.abs(Math.floor(height / transformY));
-      let drawStartX = -spriteWidth / 2 + spriteScreenX;
-      let drawEndX = spriteWidth / 2 + spriteScreenX;
+      let drawStartX = Math.floor(-spriteWidth / 2 + spriteScreenX);
+      let drawEndX = Math.ceil(spriteWidth / 2 + spriteScreenX);
 
       if (drawStartX < 0) drawStartX = 0;
       if (drawEndX >= width) drawEndX = width;
