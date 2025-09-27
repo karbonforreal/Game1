@@ -1,12 +1,12 @@
-import { config } from './config.js';
+const DEFAULT_RADIUS = 0.3;
 
 export function resolveMovement(position, velocity, delta, level) {
-  const radius = 0.3;
+  const radius = DEFAULT_RADIUS;
   const nextX = position.x + velocity.x * delta;
   const nextY = position.y + velocity.y * delta;
 
-  const canMoveX = !isWall(nextX, position.y, level, radius);
-  const canMoveY = !isWall(position.x, nextY, level, radius);
+  const canMoveX = !isPositionBlocked(nextX, position.y, level, radius);
+  const canMoveY = !isPositionBlocked(position.x, nextY, level, radius);
 
   return {
     x: canMoveX ? nextX : position.x,
@@ -14,7 +14,7 @@ export function resolveMovement(position, velocity, delta, level) {
   };
 }
 
-function isWall(x, y, level, radius) {
+export function isPositionBlocked(x, y, level, radius = DEFAULT_RADIUS) {
   const minX = Math.floor(x - radius);
   const maxX = Math.floor(x + radius);
   const minY = Math.floor(y - radius);
@@ -27,4 +27,56 @@ function isWall(x, y, level, radius) {
     }
   }
   return false;
+}
+
+export function findNearestOpenPosition(target, level, radius = DEFAULT_RADIUS) {
+  if (!isPositionBlocked(target.x, target.y, level, radius)) {
+    return { ...target };
+  }
+
+  const startTileX = Math.floor(target.x);
+  const startTileY = Math.floor(target.y);
+  const visited = new Set();
+  const queue = [{ x: startTileX, y: startTileY }];
+  const directions = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+    [1, 1],
+    [1, -1],
+    [-1, 1],
+    [-1, -1]
+  ];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    const key = `${current.x},${current.y}`;
+    if (visited.has(key)) {
+      continue;
+    }
+    visited.add(key);
+
+    if (current.x < 0 || current.y < 0 || current.x >= level.width || current.y >= level.height) {
+      continue;
+    }
+
+    const tileValue = level.tiles[current.y * level.width + current.x];
+    if (tileValue === 0) {
+      const center = { x: current.x + 0.5, y: current.y + 0.5 };
+      if (!isPositionBlocked(center.x, center.y, level, radius)) {
+        return center;
+      }
+    }
+
+    for (const [dx, dy] of directions) {
+      const next = { x: current.x + dx, y: current.y + dy };
+      const nextKey = `${next.x},${next.y}`;
+      if (!visited.has(nextKey)) {
+        queue.push(next);
+      }
+    }
+  }
+
+  return { ...target };
 }

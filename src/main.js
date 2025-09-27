@@ -12,6 +12,7 @@ import { Raycaster } from './raycaster.js';
 import { createEnemy, updateEnemies } from './enemy.js';
 import { createPickup, tryCollect } from './pickups.js';
 import { UIManager } from './ui.js';
+import { findNearestOpenPosition } from './collisions.js';
 
 function injectStyles() {
   const style = document.createElement('style');
@@ -80,7 +81,8 @@ async function bootstrap() {
   const assets = await loadAssets();
   const weapons = createWeaponDefinitions(assets.weapons);
   const player = createPlayer(weapons);
-  setPlayerStart(player, level1.playerStart.x, level1.playerStart.y, 0);
+  const safePlayerStart = findNearestOpenPosition(level1.playerStart, level1);
+  setPlayerStart(player, safePlayerStart.x, safePlayerStart.y, 0);
   const raycaster = new Raycaster(level1);
   raycaster.setTextures(assets.textures);
 
@@ -95,7 +97,7 @@ async function bootstrap() {
         attackCooldown: 0.8,
         aggroRange: 8
       },
-      spawn.position,
+      findNearestOpenPosition(spawn.position, level1),
       index
     )
   );
@@ -108,7 +110,7 @@ async function bootstrap() {
         amount: item.type === 'health' ? 25 : item.type === 'armor' ? 20 : 12,
         sprite: assets.pickups[item.type]
       },
-      item.position,
+      findNearestOpenPosition(item.position, level1, 0.2),
       index
     )
   );
