@@ -316,16 +316,30 @@ export class TouchControls {
     return { x: nx * scale, y: ny * scale };
   }
 
+  private getLookAxis(): number {
+    if (!this.lookPointer) return 0;
+    const lookPadSize = this.settings.joystickSize * 1.1;
+    const radius = Math.max(lookPadSize / 2, 1);
+    const dx = this.lookPointer.currentX - this.lookPointer.startX;
+    const normalized = clamp(dx / radius, -1, 1);
+    if (Math.abs(normalized) < DEADZONE) {
+      return 0;
+    }
+    return normalized;
+  }
+
   getState(): Partial<InputState> {
     if (!this.visible) {
       return { forward: 0, strafe: 0, turning: 0, fire: false, interact: false };
     }
     const move = this.getMoveVector();
     const forward = -move.y;
-    const turningFromMove = this.lookPointer ? 0 : clamp(move.x * 0.24, -0.35, 0.35);
+    const turningFromMove = this.lookPointer ? 0 : clamp(move.x * 0.24, -0.3, 0.3);
     const strafe = this.lookPointer ? move.x : 0;
-    const turningFromLookPad = clamp(this.lookDelta * 0.003, -0.45, 0.45);
-    const turning = clamp(turningFromMove + turningFromLookPad, -0.45, 0.45);
+    const stickTurn = clamp(this.getLookAxis() * 0.3, -0.3, 0.3);
+    const swipeTurn = clamp(this.lookDelta * 0.003, -0.3, 0.3);
+    const turningFromLookPad = clamp(stickTurn + swipeTurn, -0.3, 0.3);
+    const turning = clamp(turningFromMove + turningFromLookPad, -0.3, 0.3);
     const fire = this.fireHeld;
     const interact = this.interactHeld;
     const weaponSlot = this.weaponQueued;

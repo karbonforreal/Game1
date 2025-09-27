@@ -35,7 +35,7 @@ export const config = {
   moveSpeed: 3.5,
   strafeSpeed: 3,
   runSpeedMultiplier: 1.4,
-  turnSpeed: 2.5,
+  turnSpeed: 0.3,
   fov: (70 * Math.PI) / 180,
   maxRenderDistance: 20,
   floorColor: '#1e1b2f',
