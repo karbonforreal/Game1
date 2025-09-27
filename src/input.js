@@ -136,7 +136,7 @@ export class InputManager {
   getState(delta) {
     const forward = (this.keys['forward'] ? 1 : 0) - (this.keys['back'] ? 1 : 0);
     const strafe = (this.keys['right'] ? 1 : 0) - (this.keys['left'] ? 1 : 0);
-    const turning = this.pointerLocked ? clamp(this.mouseDelta * this.settings.lookSensitivity, -0.2, 0.2) : 0;
+    const turning = this.pointerLocked ? clamp(this.mouseDelta * 0.0025, -0.2, 0.2) : 0;
     const state = {
       forward,
       strafe,
