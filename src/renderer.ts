@@ -94,8 +94,12 @@ export class Renderer {
 
       if (drawStartX < 0) drawStartX = 0;
       if (drawEndX >= width) drawEndX = width;
+      drawStartX = Math.floor(drawStartX);
+      drawEndX = Math.ceil(drawEndX);
+      const startStripe = drawStartX;
+      const endStripe = drawEndX;
 
-      for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
+      for (let stripe = startStripe; stripe < endStripe; stripe++) {
         const texX = Math.floor(((stripe - (-spriteWidth / 2 + spriteScreenX)) * sprite.image.width) / spriteWidth);
         if (transformY > 0 && stripe > 0 && stripe < width && transformY < this.depthBuffer[stripe]) {
           ctx.drawImage(
