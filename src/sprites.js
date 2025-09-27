@@ -109,18 +109,109 @@ function createGruntSprite() {
   });
 }
 
-function createPickupSprite(color, symbol) {
-  return createCanvas(40, 40, (ctx) => {
-    ctx.clearRect(0, 0, 40, 40);
-    ctx.fillStyle = color;
+function drawPickupShadow(ctx) {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(ctx.canvas.width / 2, ctx.canvas.height - 8, ctx.canvas.width / 2.6, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function createHealthPickupSprite() {
+  return createCanvas(48, 48, (ctx) => {
+    ctx.clearRect(0, 0, 48, 48);
+    drawPickupShadow(ctx);
+
+    ctx.fillStyle = '#b3202a';
+    ctx.fillRect(12, 6, 24, 26);
+    ctx.strokeStyle = '#f25f6b';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(12, 6, 24, 26);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(22, 12, 4, 14);
+    ctx.fillRect(16, 18, 16, 4);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillRect(14, 8, 10, 4);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(12, 26, 24, 6);
+  });
+}
+
+function createAmmoPickupSprite() {
+  return createCanvas(48, 48, (ctx) => {
+    ctx.clearRect(0, 0, 48, 48);
+    drawPickupShadow(ctx);
+
+    ctx.fillStyle = '#4a4034';
+    ctx.fillRect(8, 10, 32, 22);
+    ctx.strokeStyle = '#a08f75';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8, 10, 32, 22);
+
+    ctx.fillStyle = '#2f271f';
+    ctx.fillRect(8, 26, 32, 6);
+
+    for (let i = 0; i < 3; i++) {
+      const x = 13 + i * 10;
+      ctx.fillStyle = '#f6d77a';
+      ctx.fillRect(x, 12, 6, 16);
+      ctx.fillStyle = '#d9b76e';
+      ctx.fillRect(x, 22, 6, 6);
+      ctx.beginPath();
+      ctx.moveTo(x, 12);
+      ctx.lineTo(x + 3, 6);
+      ctx.lineTo(x + 6, 12);
+      ctx.closePath();
+      ctx.fillStyle = '#fce7a2';
+      ctx.fill();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      ctx.fillRect(x, 22, 6, 1);
+    }
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillRect(10, 12, 12, 4);
+  });
+}
+
+function createArmorPickupSprite() {
+  return createCanvas(48, 48, (ctx) => {
+    ctx.clearRect(0, 0, 48, 48);
+    drawPickupShadow(ctx);
+
     ctx.beginPath();
-    ctx.arc(20, 20, 18, 0, Math.PI * 2);
+    ctx.moveTo(12, 8);
+    ctx.lineTo(36, 8);
+    ctx.lineTo(34, 26);
+    ctx.lineTo(32, 34);
+    ctx.lineTo(24, 38);
+    ctx.lineTo(16, 34);
+    ctx.lineTo(14, 26);
+    ctx.closePath();
+    ctx.fillStyle = '#3d7ea6';
     ctx.fill();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.font = '20px "Press Start 2P", monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(symbol, 20, 22);
+    ctx.strokeStyle = '#1d4258';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#6fb1d3';
+    ctx.beginPath();
+    ctx.moveTo(16, 12);
+    ctx.lineTo(32, 12);
+    ctx.lineTo(30, 26);
+    ctx.lineTo(24, 30);
+    ctx.lineTo(18, 26);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#2a5c78';
+    ctx.fillRect(14, 20, 4, 10);
+    ctx.fillRect(30, 20, 4, 10);
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.fillRect(20, 10, 10, 3);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.fillRect(16, 30, 16, 3);
   });
 }
 
@@ -135,9 +226,9 @@ export async function loadAssets() {
     grunt: createGruntSprite()
   };
   const pickups = {
-    health: createPickupSprite('#a83245', '+'),
-    armor: createPickupSprite('#3d7ea6', 'A'),
-    ammo: createPickupSprite('#f2a541', '•')
+    health: createHealthPickupSprite(),
+    armor: createArmorPickupSprite(),
+    ammo: createAmmoPickupSprite()
   };
   return { textures, weapons, enemies, pickups };
 }

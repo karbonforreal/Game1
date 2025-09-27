@@ -106,6 +106,7 @@ export interface SpriteRenderable {
   position: Vec2;
   size: number;
   offsetY?: number;
+  anchor?: 'center' | 'floor';
   isBillboard: boolean;
   distance: number;
   type: 'enemy' | 'pickup';
