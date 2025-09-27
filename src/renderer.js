@@ -81,16 +81,26 @@ export class Renderer {
       if (drawStartY < 0) drawStartY = 0;
       if (drawEndY >= height) drawEndY = height;
 
-      const spriteWidth = Math.abs(Math.floor(height / transformY));
-      let drawStartX = -spriteWidth / 2 + spriteScreenX;
-      let drawEndX = spriteWidth / 2 + spriteScreenX;
+      const spriteWidth = Math.abs(Math.floor(height / transformY)) * sprite.size;
+      if (spriteWidth < 1) continue;
+      const halfSpriteWidth = spriteWidth / 2;
+      let drawStartX = Math.floor(spriteScreenX - halfSpriteWidth);
+      let drawEndX = Math.ceil(spriteScreenX + halfSpriteWidth);
 
       if (drawStartX < 0) drawStartX = 0;
       if (drawEndX >= width) drawEndX = width;
 
+      const spriteScreenOffset = spriteScreenX - halfSpriteWidth;
+      const texStep = sprite.image.width / spriteWidth;
+
+      if (drawStartX >= drawEndX) continue;
+
       for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
-        const texX = Math.floor(((stripe - (-spriteWidth / 2 + spriteScreenX)) * sprite.image.width) / spriteWidth);
-        if (transformY > 0 && stripe > 0 && stripe < width && transformY < this.depthBuffer[stripe]) {
+        const texX = Math.min(
+          sprite.image.width - 1,
+          Math.max(0, Math.floor((stripe - spriteScreenOffset) * texStep))
+        );
+        if (transformY > 0 && stripe > 0 && stripe < width && transformY <= this.depthBuffer[stripe]) {
           ctx.drawImage(
             sprite.image,
             texX,
