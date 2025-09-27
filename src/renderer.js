@@ -108,6 +108,6 @@ export class Renderer {
 
     this.ctx.imageSmoothingEnabled = false;
     this.ctx.drawImage(this.view, 0, 0, this.canvas.width, this.canvas.height);
-    renderHUD(this.ctx, this.canvas, player, weapon, hud, settings);
+    renderHUD(this.ctx, this.canvas, player, weapon, hud, settings, raycaster.level, sprites);
   }
 }
