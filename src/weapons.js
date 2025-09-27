@@ -1,5 +1,4 @@
 import { distance, dot, normalize } from './math.js';
-import { applyDamage } from './enemy.js';
 
 export function createWeaponDefinitions(assets) {
   return {
@@ -37,39 +36,61 @@ export function createWeaponDefinitions(assets) {
   };
 }
 
-export function performAttack(def, player, enemies) {
-  let target = null;
-  if (def.id === 'pistol') {
-    let closestDistance = def.range;
-    for (const enemy of enemies) {
-      if (!enemy.alive) continue;
-      const toEnemy = {
-        x: enemy.position.x - player.position.x,
-        y: enemy.position.y - player.position.y
-      };
-      const dist = distance(enemy.position, player.position);
-      if (dist > def.range) continue;
-      const direction = normalize(player.direction);
-      const enemyDir = normalize(toEnemy);
-      const facing = dot(direction, enemyDir);
-      if (facing < 0.85) continue;
-      if (dist < closestDistance) {
-        closestDistance = dist;
-        target = enemy;
-      }
-    }
-  } else {
-    for (const enemy of enemies) {
-      if (!enemy.alive) continue;
-      const dist = distance(enemy.position, player.position);
-      if (dist <= def.range) {
-        target = enemy;
-        break;
-      }
+export function performAttack(def, player, enemies, raycaster) {
+  const origin = player.position;
+  const direction = normalize(player.direction);
+  const wallHit = raycaster.cast(origin, direction);
+  const maxDistance = Math.min(wallHit.distance, def.range);
+
+  let closestEnemy = null;
+  let closestDistance = maxDistance;
+
+  for (const enemy of enemies) {
+    if (!enemy.alive) continue;
+    const toEnemy = {
+      x: enemy.position.x - origin.x,
+      y: enemy.position.y - origin.y
+    };
+    const enemyDistance = distance(enemy.position, origin);
+    if (enemyDistance > def.range) continue;
+
+    const forwardProjection = dot(toEnemy, direction);
+    if (forwardProjection <= 0) continue;
+
+    const lateralSq = enemyDistance * enemyDistance - forwardProjection * forwardProjection;
+    const lateralDistance = lateralSq > 0 ? Math.sqrt(lateralSq) : 0;
+    if (lateralDistance > 0.6) continue;
+
+    if (forwardProjection < closestDistance + 1e-6) {
+      closestEnemy = enemy;
+      closestDistance = Math.min(forwardProjection, maxDistance);
     }
   }
-  if (target) {
-    applyDamage(target, def.damage);
+
+  if (closestEnemy) {
+    const hitDistance = Math.min(closestDistance, def.range);
+    const position = {
+      x: origin.x + direction.x * hitDistance,
+      y: origin.y + direction.y * hitDistance
+    };
+    return {
+      enemy: closestEnemy,
+      kind: 'enemy',
+      position,
+      distance: hitDistance
+    };
   }
-  return target;
+
+  const wallDistance = Math.min(wallHit.distance, def.range);
+  const wallPosition = {
+    x: origin.x + direction.x * wallDistance,
+    y: origin.y + direction.y * wallDistance
+  };
+
+  return {
+    enemy: null,
+    kind: 'wall',
+    position: wallPosition,
+    distance: wallDistance
+  };
 }

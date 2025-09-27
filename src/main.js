@@ -9,7 +9,7 @@ import { createPlayer, playerFire, setPlayerStart, updatePlayer, endAttack } fro
 import { createWeaponDefinitions, performAttack } from './weapons.js';
 import { level1 } from './level1.js';
 import { Raycaster } from './raycaster.js';
-import { createEnemy, updateEnemies } from './enemy.js';
+import { applyDamage, createEnemy, updateEnemies } from './enemy.js';
 import { createPickup, tryCollect } from './pickups.js';
 import { UIManager } from './ui.js';
 import { findNearestOpenPosition } from './collisions.js';
@@ -135,6 +135,7 @@ async function bootstrap() {
   let lastAttackTime = 0;
   let hudState = { fps: 60, showDebug: false, messages: [] };
   let lastRender = performance.now();
+  const hitMarkers = [];
 
   const loop = new GameLoop((delta, time) => {
     if (paused) return;
@@ -165,10 +166,39 @@ async function bootstrap() {
     updatePlayer(player, combined, delta, settings, level1);
     updateEnemies(enemies, delta, level1, player);
 
+    for (let i = hitMarkers.length - 1; i >= 0; i--) {
+      const marker = hitMarkers[i];
+      marker.timer -= delta;
+      if (marker.timer <= 0) {
+        hitMarkers.splice(i, 1);
+      }
+    }
+
     if (combined.fire && time - lastAttackTime > 0.05) {
       const weapon = playerFire(player, time);
       if (weapon) {
-        performAttack(weapon, player, enemies);
+        const attack = performAttack(weapon, player, enemies, raycaster);
+        if (attack.enemy) {
+          applyDamage(attack.enemy, weapon.damage);
+        }
+
+        const clampedDistance = Math.min(attack.distance, weapon.range);
+        let markerPosition = attack.position;
+        if (attack.distance > 0 && attack.distance !== clampedDistance) {
+          const scale = clampedDistance / attack.distance;
+          markerPosition = {
+            x: player.position.x + (attack.position.x - player.position.x) * scale,
+            y: player.position.y + (attack.position.y - player.position.y) * scale
+          };
+        }
+        const markerDuration = 0.25;
+        hitMarkers.push({
+          position: markerPosition,
+          distance: clampedDistance,
+          timer: markerDuration,
+          duration: markerDuration,
+          kind: attack.kind
+        });
         lastAttackTime = time;
       }
     }
@@ -222,7 +252,15 @@ async function bootstrap() {
       });
     }
 
-    renderer.render(raycaster, player, spriteList, hudState, player.weapons[player.activeWeapon].definition, settings);
+    renderer.render(
+      raycaster,
+      player,
+      spriteList,
+      hudState,
+      player.weapons[player.activeWeapon].definition,
+      hitMarkers,
+      settings
+    );
   });
 
   window.addEventListener('resize', () => renderer.resize(settings.dynamicResolution));
