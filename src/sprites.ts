@@ -41,63 +41,266 @@ function createDungeonTexture(): HTMLCanvasElement {
   });
 }
 
-function drawWeaponBase(ctx: CanvasRenderingContext2D, color: string) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(10, 54);
-  ctx.lineTo(54, 54);
-  ctx.lineTo(40, 10);
-  ctx.lineTo(24, 10);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#111';
-  ctx.fillRect(20, 28, 24, 6);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.fillRect(18, 20, 28, 3);
-}
-
 function createFistSprite(): HTMLCanvasElement {
-  return createCanvas(64, 64, (ctx) => {
-    drawWeaponBase(ctx, '#c98f63');
-    ctx.fillStyle = '#f2c9a1';
+  return createCanvas(112, 72, (ctx) => {
+    ctx.clearRect(0, 0, 112, 72);
+
+    // Wrist wrap
+    ctx.fillStyle = '#2d243a';
+    ctx.fillRect(12, 44, 46, 20);
+    ctx.fillStyle = '#3b3050';
+    ctx.fillRect(12, 44, 46, 6);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillRect(16, 46, 18, 3);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.fillRect(12, 58, 46, 6);
+
+    // Main fist volume
+    ctx.fillStyle = '#c78d5e';
     ctx.beginPath();
-    ctx.moveTo(28, 12);
-    ctx.lineTo(36, 12);
-    ctx.lineTo(50, 44);
-    ctx.lineTo(14, 44);
+    ctx.moveTo(20, 52);
+    ctx.lineTo(84, 52);
+    ctx.lineTo(102, 38);
+    ctx.lineTo(98, 24);
+    ctx.lineTo(82, 14);
+    ctx.lineTo(48, 10);
+    ctx.lineTo(30, 14);
+    ctx.lineTo(16, 26);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#9a6842';
-    ctx.fillRect(22, 28, 20, 8);
+
+    // Palm shading
+    ctx.fillStyle = '#9d653c';
+    ctx.beginPath();
+    ctx.moveTo(24, 48);
+    ctx.lineTo(68, 44);
+    ctx.lineTo(84, 32);
+    ctx.lineTo(78, 20);
+    ctx.lineTo(60, 18);
+    ctx.lineTo(36, 24);
+    ctx.lineTo(24, 34);
+    ctx.closePath();
+    ctx.fill();
+
+    // Knuckle highlights
+    ctx.fillStyle = '#f2c9a1';
+    for (let i = 0; i < 4; i++) {
+      const offset = 28 + i * 12;
+      ctx.fillRect(offset, 20, 10, 6);
+      ctx.fillRect(offset - 2, 26, 12, 4);
+    }
+
+    // Subtle rim lighting
+    ctx.fillStyle = 'rgba(255, 238, 210, 0.25)';
+    ctx.beginPath();
+    ctx.moveTo(18, 42);
+    ctx.lineTo(34, 24);
+    ctx.lineTo(52, 18);
+    ctx.lineTo(68, 20);
+    ctx.lineTo(76, 28);
+    ctx.lineTo(68, 36);
+    ctx.lineTo(34, 44);
+    ctx.closePath();
+    ctx.fill();
+
+    // Knuckle creases
+    ctx.strokeStyle = '#5d361a';
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < 4; i++) {
+      const startX = 30 + i * 12;
+      ctx.beginPath();
+      ctx.moveTo(startX, 34);
+      ctx.lineTo(startX + 8, 34);
+      ctx.lineTo(startX + 6, 40);
+      ctx.stroke();
+    }
+
+    // Outline
+    ctx.strokeStyle = '#2a1609';
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(18, 52);
+    ctx.lineTo(84, 52);
+    ctx.lineTo(104, 38);
+    ctx.lineTo(100, 20);
+    ctx.lineTo(82, 10);
+    ctx.lineTo(48, 6);
+    ctx.lineTo(26, 12);
+    ctx.lineTo(12, 26);
+    ctx.closePath();
+    ctx.stroke();
   });
 }
 
 function createPistolSprite(): HTMLCanvasElement {
-  return createCanvas(64, 64, (ctx) => {
-    drawWeaponBase(ctx, '#3a4c6e');
-    ctx.fillStyle = '#1b2536';
-    ctx.fillRect(22, 24, 28, 16);
-    ctx.fillStyle = '#8ba2d0';
-    ctx.fillRect(24, 20, 24, 6);
-    ctx.fillStyle = '#dfe8ff';
-    ctx.fillRect(30, 22, 10, 2);
+  return createCanvas(128, 64, (ctx) => {
+    ctx.clearRect(0, 0, 128, 64);
+
+    // Pistol frame silhouette
+    ctx.fillStyle = '#1c2337';
+    ctx.beginPath();
+    ctx.moveTo(12, 40);
+    ctx.lineTo(92, 40);
+    ctx.lineTo(118, 30);
+    ctx.lineTo(118, 20);
+    ctx.lineTo(70, 20);
+    ctx.lineTo(70, 14);
+    ctx.lineTo(40, 14);
+    ctx.lineTo(36, 34);
+    ctx.lineTo(26, 52);
+    ctx.lineTo(18, 54);
+    ctx.closePath();
+    ctx.fill();
+
+    // Grip shading
+    ctx.fillStyle = '#101524';
+    ctx.beginPath();
+    ctx.moveTo(28, 52);
+    ctx.lineTo(40, 30);
+    ctx.lineTo(46, 30);
+    ctx.lineTo(52, 52);
+    ctx.closePath();
+    ctx.fill();
+
+    // Slide highlight
+    ctx.fillStyle = '#5a6d95';
+    ctx.fillRect(26, 18, 64, 12);
+    ctx.fillStyle = '#8293bd';
+    ctx.fillRect(28, 18, 56, 6);
+
+    // Barrel muzzle detail
+    ctx.fillStyle = '#0d111c';
+    ctx.fillRect(112, 24, 8, 8);
+    ctx.fillStyle = '#9aa6c8';
+    ctx.fillRect(112, 22, 6, 4);
+
+    // Trigger guard and trigger
+    ctx.strokeStyle = '#2e3b57';
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(58, 40);
+    ctx.lineTo(48, 50);
+    ctx.lineTo(56, 56);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#9aa6c8';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(54, 46);
+    ctx.lineTo(50, 50);
+    ctx.stroke();
+
+    // Top venting and screws
+    ctx.fillStyle = '#b6c2e4';
+    ctx.fillRect(36, 20, 8, 3);
+    ctx.fillRect(60, 20, 8, 3);
+    ctx.fillRect(82, 20, 8, 3);
+    ctx.fillStyle = '#0d111c';
+    ctx.fillRect(40, 24, 2, 4);
+    ctx.fillRect(64, 24, 2, 4);
+    ctx.fillRect(86, 24, 2, 4);
+
+    // Edge lighting
+    ctx.strokeStyle = '#4c5d86';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(18, 54);
+    ctx.lineTo(30, 32);
+    ctx.lineTo(36, 14);
+    ctx.lineTo(70, 14);
+    ctx.lineTo(70, 18);
+    ctx.lineTo(118, 18);
+    ctx.stroke();
+
+    // Underside shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.fillRect(16, 40, 88, 6);
+    ctx.fillRect(26, 48, 32, 12);
   });
 }
 
 function createKnifeSprite(): HTMLCanvasElement {
-  return createCanvas(64, 64, (ctx) => {
-    drawWeaponBase(ctx, '#556b2f');
-    ctx.fillStyle = '#9dbb75';
-    ctx.fillRect(28, 12, 8, 24);
-    ctx.fillStyle = '#d8e4c2';
+  return createCanvas(120, 72, (ctx) => {
+    ctx.clearRect(0, 0, 120, 72);
+
+    // Handle core
+    ctx.fillStyle = '#4a2f1c';
     ctx.beginPath();
-    ctx.moveTo(32, 8);
-    ctx.lineTo(44, 40);
-    ctx.lineTo(20, 40);
+    ctx.moveTo(12, 44);
+    ctx.lineTo(44, 44);
+    ctx.lineTo(54, 52);
+    ctx.lineTo(30, 60);
+    ctx.lineTo(14, 56);
     ctx.closePath();
     ctx.fill();
+
+    ctx.fillStyle = '#7a4b28';
+    ctx.fillRect(14, 46, 24, 10);
+    ctx.fillStyle = 'rgba(255, 220, 180, 0.2)';
+    ctx.fillRect(18, 48, 18, 4);
+
+    // Guard
+    ctx.fillStyle = '#2c3b4e';
+    ctx.fillRect(40, 40, 10, 12);
+    ctx.fillStyle = '#4e6580';
+    ctx.fillRect(40, 40, 10, 4);
+
+    // Blade base tone
+    ctx.fillStyle = '#d5e0e7';
+    ctx.beginPath();
+    ctx.moveTo(44, 22);
+    ctx.lineTo(112, 12);
+    ctx.lineTo(102, 50);
+    ctx.lineTo(46, 48);
+    ctx.closePath();
+    ctx.fill();
+
+    // Blade midtone
+    ctx.fillStyle = '#b1c1cf';
+    ctx.beginPath();
+    ctx.moveTo(50, 28);
+    ctx.lineTo(102, 18);
+    ctx.lineTo(94, 46);
+    ctx.lineTo(52, 44);
+    ctx.closePath();
+    ctx.fill();
+
+    // Blade edge highlight
+    ctx.fillStyle = '#f3f8ff';
+    ctx.beginPath();
+    ctx.moveTo(52, 26);
+    ctx.lineTo(110, 14);
+    ctx.lineTo(104, 36);
+    ctx.lineTo(54, 38);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fuller line
+    ctx.strokeStyle = 'rgba(80, 104, 128, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(52, 32);
+    ctx.lineTo(96, 26);
+    ctx.stroke();
+
+    // Edge outline
+    ctx.strokeStyle = '#27303f';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(44, 22);
+    ctx.lineTo(112, 12);
+    ctx.lineTo(100, 52);
+    ctx.lineTo(44, 50);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Handle rivets
+    ctx.fillStyle = '#c0c9d6';
+    ctx.fillRect(20, 50, 4, 4);
+    ctx.fillRect(30, 50, 4, 4);
   });
 }
 
