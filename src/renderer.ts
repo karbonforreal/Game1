@@ -10,6 +10,33 @@ export class Renderer {
   private viewCtx: CanvasRenderingContext2D;
   private depthBuffer: number[] = [];
 
+  private drawCrosshair(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    const size = Math.min(width, height);
+    const lineLength = Math.max(6, Math.floor(size * 0.03));
+    const gap = Math.max(4, Math.floor(size * 0.01));
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = Math.max(1, Math.floor(size * 0.002));
+    ctx.lineCap = 'round';
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = Math.max(2, Math.floor(size * 0.005));
+
+    ctx.beginPath();
+    ctx.moveTo(centerX - gap - lineLength, centerY);
+    ctx.lineTo(centerX - gap, centerY);
+    ctx.moveTo(centerX + gap, centerY);
+    ctx.lineTo(centerX + gap + lineLength, centerY);
+    ctx.moveTo(centerX, centerY - gap - lineLength);
+    ctx.lineTo(centerX, centerY - gap);
+    ctx.moveTo(centerX, centerY + gap);
+    ctx.lineTo(centerX, centerY + gap + lineLength);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   constructor(container: HTMLElement) {
     this.canvas = document.createElement('canvas');
     this.canvas.style.width = '100%';
@@ -190,6 +217,7 @@ export class Renderer {
 
     this.ctx.imageSmoothingEnabled = false;
     this.ctx.drawImage(this.view, 0, 0, this.canvas.width, this.canvas.height);
+    this.drawCrosshair(this.ctx, this.canvas.width, this.canvas.height);
     renderHUD(this.ctx, this.canvas, player, weapon, hud, settings, raycaster.level, sprites);
   }
 }
