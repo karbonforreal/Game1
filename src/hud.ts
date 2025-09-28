@@ -112,13 +112,34 @@ export function renderHUD(
   }
 
   if (weapon.sprite) {
-    const weaponWidth = canvas.width * 0.35;
-    const aspect = weapon.sprite.height / weapon.sprite.width;
-    const weaponHeight = weaponWidth * aspect;
-    const weaponX = canvas.width / 2 - weaponWidth / 2;
-    const weaponY = canvas.height - hudHeight - weaponHeight + 20;
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(weapon.sprite, weaponX, weaponY, weaponWidth, weaponHeight);
+    const hudTop = canvas.height - hudHeight;
+    const crosshairExtent = 16;
+    const verticalPadding = 24;
+    const maxWeaponHeight = Math.max(
+      0,
+      hudTop - (canvas.height / 2 + crosshairExtent) - verticalPadding
+    );
+
+    if (maxWeaponHeight > 0) {
+      const aspect = weapon.sprite.height / weapon.sprite.width;
+      const maxWeaponWidth = canvas.width * 0.6;
+      let weaponHeight = maxWeaponHeight;
+      let weaponWidth = weaponHeight / aspect;
+
+      if (weaponWidth > maxWeaponWidth) {
+        weaponWidth = maxWeaponWidth;
+        weaponHeight = weaponWidth * aspect;
+      }
+
+      weaponHeight = Math.min(weaponHeight, maxWeaponHeight);
+      weaponWidth = weaponHeight / aspect;
+
+      const weaponX = (canvas.width - weaponWidth) / 2;
+      const bottomPadding = 12;
+      const weaponY = hudTop - weaponHeight - bottomPadding;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(weapon.sprite, weaponX, weaponY, weaponWidth, weaponHeight);
+    }
   }
 
   ctx.save();
