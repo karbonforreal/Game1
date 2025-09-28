@@ -121,5 +121,40 @@ export function renderHUD(
     ctx.drawImage(weapon.sprite, weaponX, weaponY, weaponWidth, weaponHeight);
   }
 
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const crosshairSize = Math.max(12, Math.floor(Math.min(canvas.width, canvas.height) * 0.028));
+  const armLength = Math.floor(crosshairSize * 0.55);
+  const armGap = Math.floor(crosshairSize * 0.25);
+  const armThickness = Math.max(2, Math.floor(crosshairSize * 0.12));
+  const dotRadius = Math.max(2, Math.floor(crosshairSize * 0.18));
+
+  ctx.save();
+  ctx.lineWidth = armThickness;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+  ctx.shadowBlur = Math.max(2, Math.floor(crosshairSize * 0.2));
+  ctx.beginPath();
+  ctx.moveTo(centerX - (armGap + armLength), centerY);
+  ctx.lineTo(centerX - armGap, centerY);
+  ctx.moveTo(centerX + armGap, centerY);
+  ctx.lineTo(centerX + armGap + armLength, centerY);
+  ctx.moveTo(centerX, centerY - (armGap + armLength));
+  ctx.lineTo(centerX, centerY - armGap);
+  ctx.moveTo(centerX, centerY + armGap);
+  ctx.lineTo(centerX, centerY + armGap + armLength);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#5cf4ff';
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, dotRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.stroke();
+  ctx.restore();
+
   ctx.restore();
 }
