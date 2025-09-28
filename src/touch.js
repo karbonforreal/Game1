@@ -9,14 +9,11 @@ export class TouchControls {
     this.container.className = 'touch-container';
     this.container.style.cssText = 'position:fixed;inset:0;pointer-events:none;font-family:inherit;';
 
-    this.joystick = document.createElement('div');
-    this.joystick.className = 'touch-joystick';
-    this.joystickKnob = document.createElement('div');
-    this.joystickKnob.className = 'touch-joystick-knob';
-    this.joystick.appendChild(this.joystickKnob);
+    this.moveArea = document.createElement('div');
+    this.moveArea.className = 'touch-move-area';
 
-    this.lookPad = document.createElement('div');
-    this.lookPad.className = 'touch-lookpad';
+    this.lookArea = document.createElement('div');
+    this.lookArea.className = 'touch-look-area';
 
     this.rightControls = document.createElement('div');
     this.rightControls.className = 'touch-right-controls';
@@ -66,7 +63,8 @@ export class TouchControls {
       }
     }
 
-    this.container.appendChild(this.joystick);
+    this.container.appendChild(this.moveArea);
+    this.container.appendChild(this.lookArea);
     this.buttonCluster = document.createElement('div');
     this.buttonCluster.className = 'touch-buttons';
     this.buttonCluster.style.cssText = 'display:flex;flex-direction:column;gap:12px;pointer-events:auto;';
@@ -92,7 +90,6 @@ export class TouchControls {
     this.buttonCluster.appendChild(actionRow);
     this.buttonCluster.appendChild(this.pauseButton);
 
-    this.rightControls.appendChild(this.lookPad);
     this.rightControls.appendChild(this.buttonCluster);
     this.container.appendChild(this.rightControls);
 
@@ -102,7 +99,6 @@ export class TouchControls {
     this.updateToggleLabel();
     this.applyStyles();
     this.attachPointerListeners();
-    this.updateJoystickVisual();
   }
 
   isTouchDevice() {
@@ -134,8 +130,8 @@ export class TouchControls {
 
   attachPointerListeners() {
     const pointerOptions = { passive: false };
-    this.joystick.addEventListener('pointerdown', (e) => this.beginMove(e), pointerOptions);
-    this.lookPad.addEventListener('pointerdown', (e) => this.beginLook(e), pointerOptions);
+    this.moveArea.addEventListener('pointerdown', (e) => this.beginMove(e), pointerOptions);
+    this.lookArea.addEventListener('pointerdown', (e) => this.beginLook(e), pointerOptions);
     window.addEventListener('pointermove', (e) => this.onPointerMove(e), pointerOptions);
     window.addEventListener('pointerup', (e) => this.endPointer(e));
     window.addEventListener('pointercancel', (e) => this.endPointer(e));
@@ -178,8 +174,7 @@ export class TouchControls {
       currentY: e.clientY,
       active: true
     };
-    this.updateJoystickVisual();
-    this.joystick.setPointerCapture(e.pointerId);
+    this.moveArea.setPointerCapture(e.pointerId);
   }
 
   beginLook(e) {
@@ -192,14 +187,13 @@ export class TouchControls {
       currentY: e.clientY,
       active: true
     };
-    this.lookPad.setPointerCapture(e.pointerId);
+    this.lookArea.setPointerCapture(e.pointerId);
   }
 
   onPointerMove(e) {
     if (this.movePointer && this.movePointer.id === e.pointerId) {
       this.movePointer.currentX = e.clientX;
       this.movePointer.currentY = e.clientY;
-      this.updateJoystickVisual();
     }
     if (this.lookPointer && this.lookPointer.id === e.pointerId) {
       const dx = e.clientX - this.lookPointer.currentX;
@@ -211,12 +205,11 @@ export class TouchControls {
 
   endPointer(e) {
     if (this.movePointer && this.movePointer.id === e.pointerId) {
-      this.joystick.releasePointerCapture(e.pointerId);
+      this.moveArea.releasePointerCapture(e.pointerId);
       this.movePointer = null;
-      this.updateJoystickVisual();
     }
     if (this.lookPointer && this.lookPointer.id === e.pointerId) {
-      this.lookPad.releasePointerCapture(e.pointerId);
+      this.lookArea.releasePointerCapture(e.pointerId);
       this.lookPointer = null;
     }
     if (this.fireHeld && e.target === this.fireButton) {
@@ -227,33 +220,16 @@ export class TouchControls {
     }
   }
 
-  updateJoystickVisual() {
-    const size = this.settings.joystickSize;
-    this.joystick.style.width = `${size}px`;
-    this.joystick.style.height = `${size}px`;
-    const knobSize = size * 0.4;
-    const move = this.getMoveVector();
-    const radius = (size - knobSize) / 2;
-    const offsetX = move.x * radius;
-    const offsetY = move.y * radius;
-    this.joystickKnob.style.width = `${knobSize}px`;
-    this.joystickKnob.style.height = `${knobSize}px`;
-    this.joystickKnob.style.transform = `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px)`;
-  }
-
   applyStyles() {
     const baseOpacity = this.settings.uiOpacity;
-    const joystickSide = this.settings.leftHanded ? 'right' : 'left';
-    const joystickOppositeSide = this.settings.leftHanded ? 'left' : 'right';
-    this.joystick.style.cssText = `position:absolute;bottom:20%;${joystickSide}:6%;${joystickOppositeSide}:auto;pointer-events:auto;border-radius:50%;background:rgba(40,40,60,${baseOpacity});backdrop-filter:blur(6px);touch-action:none;display:flex;align-items:center;justify-content:center;`;
-    this.joystickKnob.style.cssText =
-      'position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);background:rgba(255,255,255,0.7);border-radius:50%;transition:background 0.1s;';
-    const lookPadSize = this.settings.joystickSize * 1.1;
-    this.lookPad.style.cssText = `width:${lookPadSize}px;height:${lookPadSize}px;border-radius:18px;background:rgba(40,40,60,${baseOpacity});pointer-events:auto;touch-action:none;`;
+    const moveSide = this.settings.leftHanded ? 'right' : 'left';
+    const lookSide = this.settings.leftHanded ? 'left' : 'right';
+    this.moveArea.style.cssText = `position:absolute;top:0;bottom:0;${moveSide}:0;width:50%;pointer-events:auto;touch-action:none;background:transparent;z-index:1;`;
+    this.lookArea.style.cssText = `position:absolute;top:0;bottom:0;${lookSide}:0;width:50%;pointer-events:auto;touch-action:none;background:transparent;z-index:1;`;
     const controlsSide = this.settings.leftHanded ? 'left' : 'right';
     const controlsOppositeSide = this.settings.leftHanded ? 'right' : 'left';
     const alignItems = this.settings.leftHanded ? 'flex-start' : 'flex-end';
-    this.rightControls.style.cssText = `position:absolute;bottom:18%;${controlsSide}:4%;${controlsOppositeSide}:auto;display:flex;flex-direction:column;align-items:${alignItems};gap:18px;pointer-events:auto;`;
+    this.rightControls.style.cssText = `position:absolute;bottom:18%;${controlsSide}:4%;${controlsOppositeSide}:auto;display:flex;flex-direction:column;align-items:${alignItems};gap:18px;pointer-events:auto;z-index:2;`;
     this.buttonCluster.style.alignItems = alignItems;
     this.fireButton.style.background = `rgba(255,120,80,${baseOpacity + 0.2})`;
     this.interactButton.style.background = `rgba(120,200,255,${baseOpacity + 0.2})`;
@@ -282,7 +258,6 @@ export class TouchControls {
     this.settings = settings;
     this.setVisible(settings.touchEnabled || this.visible);
     this.applyStyles();
-    this.updateJoystickVisual();
   }
 
   resetState() {
