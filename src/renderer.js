@@ -54,13 +54,26 @@ export class Renderer {
       const perpDist = hit.distance;
       this.depthBuffer[x] = perpDist;
       const lineHeight = Math.floor(height / perpDist);
-      const drawStart = Math.max(-lineHeight / 2 + height / 2, 0);
-      const drawEnd = Math.min(lineHeight / 2 + height / 2, height);
+      if (lineHeight <= 0) continue;
+      const rawDrawStart = -lineHeight / 2 + height / 2;
+      const rawDrawEnd = lineHeight / 2 + height / 2;
+      const drawStart = Math.max(rawDrawStart, 0);
+      const drawEnd = Math.min(rawDrawEnd, height);
+      const visibleHeight = drawEnd - drawStart;
+      if (visibleHeight <= 0) continue;
+
+      const clippedTop = Math.max(0, -rawDrawStart);
+      const clippedBottom = Math.max(0, rawDrawEnd - height);
 
       const tex = hit.texture;
       const texX = hit.texX;
       const texImage = tex.image;
-      ctx.drawImage(texImage, texX, 0, 1, tex.height, x, drawStart, 1, drawEnd - drawStart);
+      const texHeight = tex.height;
+      const srcY = Math.max(0, (clippedTop / lineHeight) * texHeight);
+      const srcBottomOffset = Math.max(0, (clippedBottom / lineHeight) * texHeight);
+      const srcHeight = Math.max(0, texHeight - srcY - srcBottomOffset);
+      if (srcHeight <= 0) continue;
+      ctx.drawImage(texImage, texX, srcY, 1, srcHeight, x, drawStart, 1, visibleHeight);
     }
 
     const sortedSprites = raycaster.gatherSprites(player.position, sprites);
