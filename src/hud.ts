@@ -121,5 +121,27 @@ export function renderHUD(
     ctx.drawImage(weapon.sprite, weaponX, weaponY, weaponWidth, weaponHeight);
   }
 
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const crosshairSize = Math.max(8, Math.floor(Math.min(canvas.width, canvas.height) * 0.02));
+  const crosshairGap = Math.max(4, Math.floor(crosshairSize * 0.4));
+
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+  ctx.shadowBlur = 2;
+  ctx.beginPath();
+  ctx.moveTo(centerX - crosshairGap - crosshairSize, centerY);
+  ctx.lineTo(centerX - crosshairGap, centerY);
+  ctx.moveTo(centerX + crosshairGap, centerY);
+  ctx.lineTo(centerX + crosshairGap + crosshairSize, centerY);
+  ctx.moveTo(centerX, centerY - crosshairGap - crosshairSize);
+  ctx.lineTo(centerX, centerY - crosshairGap);
+  ctx.moveTo(centerX, centerY + crosshairGap);
+  ctx.lineTo(centerX, centerY + crosshairGap + crosshairSize);
+  ctx.stroke();
+  ctx.restore();
+
   ctx.restore();
 }
