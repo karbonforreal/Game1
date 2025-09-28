@@ -86,6 +86,33 @@ export function renderHUD(
 ) {
   renderMinimap(ctx, canvas, level, player, sprites, settings);
 
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const crosshairLength = Math.max(8, Math.min(canvas.width, canvas.height) * 0.02);
+  const gap = crosshairLength * 0.4;
+  const opacity = Math.min(1, Math.max(0.35, settings.uiOpacity + 0.25));
+
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+  ctx.beginPath();
+  ctx.moveTo(centerX - crosshairLength, centerY);
+  ctx.lineTo(centerX - gap, centerY);
+  ctx.moveTo(centerX + gap, centerY);
+  ctx.lineTo(centerX + crosshairLength, centerY);
+  ctx.moveTo(centerX, centerY - crosshairLength);
+  ctx.lineTo(centerX, centerY - gap);
+  ctx.moveTo(centerX, centerY + gap);
+  ctx.lineTo(centerX, centerY + crosshairLength);
+  ctx.stroke();
+
+  ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, Math.max(1.5, crosshairLength * 0.1), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
   const hudHeight = config.hudHeight;
   ctx.save();
   ctx.fillStyle = 'rgba(15, 10, 25, 0.85)';
