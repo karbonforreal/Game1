@@ -93,5 +93,25 @@ export function renderHUD(ctx, canvas, player, weapon, hud, settings, level, spr
     ctx.drawImage(weapon.sprite, weaponX, weaponY, weaponWidth, weaponHeight);
   }
 
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, Math.max(0.25, settings.uiOpacity));
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-16, 0);
+  ctx.lineTo(-6, 0);
+  ctx.moveTo(6, 0);
+  ctx.lineTo(16, 0);
+  ctx.moveTo(0, -16);
+  ctx.lineTo(0, -6);
+  ctx.moveTo(0, 6);
+  ctx.lineTo(0, 16);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, 3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
   ctx.restore();
 }
