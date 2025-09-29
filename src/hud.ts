@@ -112,13 +112,43 @@ export function renderHUD(
   }
 
   if (weapon.sprite) {
-    const weaponWidth = canvas.width * 0.35;
-    const aspect = weapon.sprite.height / weapon.sprite.width;
-    const weaponHeight = weaponWidth * aspect;
-    const weaponX = canvas.width / 2 - weaponWidth / 2;
-    const weaponY = canvas.height - hudHeight - weaponHeight + 20;
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(weapon.sprite, weaponX, weaponY, weaponWidth, weaponHeight);
+    const hudTop = canvas.height - hudHeight;
+    const crosshairExtent = 16;
+    const isLandscape = canvas.width >= canvas.height;
+    const crosshairBottom = canvas.height / 2 + crosshairExtent;
+    const topPadding = isLandscape ? 32 : 24;
+    const bottomPadding = isLandscape ? 16 : 12;
+    const minWeaponTop = crosshairBottom + topPadding;
+    const maxWeaponBottom = hudTop - bottomPadding;
+    const availableHeight = Math.max(0, maxWeaponBottom - minWeaponTop);
+
+    if (availableHeight > 0) {
+      const aspect = weapon.sprite.height / weapon.sprite.width;
+      const heightFillRatio = isLandscape ? 0.85 : 0.95;
+      const maxWeaponWidthRatio = isLandscape ? 0.45 : 0.6;
+      let weaponHeight = availableHeight * heightFillRatio;
+      weaponHeight = Math.min(weaponHeight, availableHeight);
+      let weaponWidth = weaponHeight / aspect;
+      const maxWeaponWidth = canvas.width * maxWeaponWidthRatio;
+
+      if (weaponWidth > maxWeaponWidth) {
+        weaponWidth = maxWeaponWidth;
+        weaponHeight = weaponWidth * aspect;
+      }
+
+      if (weaponHeight > availableHeight) {
+        weaponHeight = availableHeight;
+        weaponWidth = weaponHeight / aspect;
+      }
+
+      const weaponX = (canvas.width - weaponWidth) / 2;
+      let weaponY = maxWeaponBottom - weaponHeight;
+      if (weaponY < minWeaponTop) {
+        weaponY = minWeaponTop;
+      }
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(weapon.sprite, weaponX, weaponY, weaponWidth, weaponHeight);
+    }
   }
 
   ctx.save();
