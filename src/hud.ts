@@ -114,18 +114,16 @@ export function renderHUD(
   if (weapon.sprite) {
     const hudTop = canvas.height - hudHeight;
     const centerY = canvas.height / 2;
-    const safetyMargin = 24;
+    const safetyMargin = 32;
     const maxWeaponHeight = Math.max(0, hudTop - (centerY + safetyMargin));
+    const maxWeaponWidth = canvas.width * 0.38;
 
-    let weaponWidth = canvas.width * 0.35;
-    const aspect = weapon.sprite.height / weapon.sprite.width;
-    let weaponHeight = weaponWidth * aspect;
+    const widthScale = maxWeaponWidth / weapon.sprite.width;
+    const heightScale = maxWeaponHeight > 0 ? maxWeaponHeight / weapon.sprite.height : widthScale;
+    const scale = Math.min(widthScale, heightScale);
 
-    if (maxWeaponHeight > 0 && weaponHeight > maxWeaponHeight) {
-      const scale = maxWeaponHeight / weaponHeight;
-      weaponHeight = maxWeaponHeight;
-      weaponWidth *= scale;
-    }
+    const weaponWidth = weapon.sprite.width * scale;
+    const weaponHeight = weapon.sprite.height * scale;
 
     const weaponX = canvas.width / 2 - weaponWidth / 2;
     const weaponY = Math.max(centerY + safetyMargin, hudTop - weaponHeight);
