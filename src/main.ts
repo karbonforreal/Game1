@@ -11,7 +11,7 @@ import { level1 } from './level1';
 import { Raycaster } from './raycaster';
 import { applyDamage, createEnemy, updateEnemies } from './enemy';
 import { createPickup, tryCollect } from './pickups';
-import type { EnemyInstance, HitMarker, PickupInstance, Settings, SpriteRenderable } from './types';
+import type { EnemyInstance, GameState, HitMarker, PickupInstance, Settings, SpriteRenderable } from './types';
 import { UIManager } from './ui';
 import { findNearestOpenPosition } from './collisions';
 import { normalize } from './math';
@@ -51,6 +51,16 @@ function injectStyles() {
       font-family: inherit;
       font-size: 14px;
       cursor: pointer;
+      background: #3a4c6e;
+      border: 2px solid #556b85;
+      color: #fff;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .ui-overlay button:hover {
+      background: #556b85;
+      border-color: #8ba2d0;
+      transform: scale(1.05);
     }
     .ui-overlay label {
       display: flex;
@@ -66,8 +76,55 @@ function injectStyles() {
       display: flex;
       justify-content: space-between;
     }
+    .game-over-title {
+      font-size: 28px;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .game-over-title.victory {
+      color: #4afe4a;
+      text-shadow: 0 0 10px rgba(74, 254, 74, 0.5);
+    }
+    .game-over-title.defeat {
+      color: #ff4444;
+      text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+    }
+    .game-over-message {
+      font-size: 14px;
+      margin-bottom: 24px;
+      color: #aaa;
+      line-height: 1.6;
+    }
   `;
   document.head.appendChild(style);
+}
+
+function createGameOverUI(): { victoryScreen: HTMLElement; defeatScreen: HTMLElement } {
+  const victoryScreen = document.createElement('div');
+  victoryScreen.id = 'victory-screen';
+  victoryScreen.className = 'ui-overlay';
+  victoryScreen.innerHTML = `
+    <div class="panel">
+      <h1 class="game-over-title victory">VICTORY!</h1>
+      <p class="game-over-message">All hostiles eliminated.<br>Mission accomplished.</p>
+      <button id="victory-restart">Restart</button>
+    </div>
+  `;
+  document.body.appendChild(victoryScreen);
+
+  const defeatScreen = document.createElement('div');
+  defeatScreen.id = 'defeat-screen';
+  defeatScreen.className = 'ui-overlay';
+  defeatScreen.innerHTML = `
+    <div class="panel">
+      <h1 class="game-over-title defeat">DEFEATED</h1>
+      <p class="game-over-message">Your mission has failed.<br>Better luck next time.</p>
+      <button id="defeat-restart">Restart</button>
+    </div>
+  `;
+  document.body.appendChild(defeatScreen);
+
+  return { victoryScreen, defeatScreen };
 }
 
 async function bootstrap() {
@@ -76,6 +133,8 @@ async function bootstrap() {
   if (!app) throw new Error('No app container');
   let settings = loadSettings();
   initAudio(settings);
+
+  const { victoryScreen, defeatScreen } = createGameOverUI();
 
   const renderer = new Renderer(app);
   renderer.resize(settings.dynamicResolution);
@@ -100,7 +159,8 @@ async function bootstrap() {
         aggroRange: 8
       },
       findNearestOpenPosition(spawn.position, level1),
-      index
+      index,
+      level1
     )
   );
 
@@ -134,13 +194,21 @@ async function bootstrap() {
   });
 
   let paused = false;
+  let gameState: GameState = 'playing';
   let lastAttackTime = 0;
   let hudState = { fps: 60, showDebug: false, messages: [] };
   let lastRender = performance.now();
   const hitMarkers: HitMarker[] = [];
 
+  // Restart button handlers
+  const restartGame = () => {
+    location.reload();
+  };
+  victoryScreen.querySelector('#victory-restart')?.addEventListener('click', restartGame);
+  defeatScreen.querySelector('#defeat-restart')?.addEventListener('click', restartGame);
+
   const loop = new GameLoop((delta, time) => {
-    if (paused) return;
+    if (paused || gameState !== 'playing') return;
     const keyboardState = input.getState(delta);
     const touchState = touchControls.getState();
     const combined = {
@@ -167,6 +235,21 @@ async function bootstrap() {
 
     updatePlayer(player, combined, delta, settings, level1);
     updateEnemies(enemies, delta, level1, player);
+
+    // Check for lose condition
+    if (player.health <= 0 && gameState === 'playing') {
+      gameState = 'lost';
+      defeatScreen.style.display = 'flex';
+      return;
+    }
+
+    // Check for win condition
+    const allEnemiesDead = enemies.every(enemy => !enemy.alive);
+    if (allEnemiesDead && gameState === 'playing') {
+      gameState = 'won';
+      victoryScreen.style.display = 'flex';
+      return;
+    }
 
     for (let i = hitMarkers.length - 1; i >= 0; i--) {
       const marker = hitMarkers[i];

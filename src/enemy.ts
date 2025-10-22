@@ -5,17 +5,68 @@ import { resolveMovement } from './collisions';
 import { play } from './audio';
 import { damagePlayer } from './player';
 
-export function createEnemy(definition: EnemyDefinition, position: Vec2, id: number): EnemyInstance {
+function generatePatrolWaypoints(startPos: Vec2, level: LevelDefinition): Vec2[] {
+  const waypoints: Vec2[] = [];
+  const numWaypoints = 4 + Math.floor(Math.random() * 3); // 4-6 waypoints
+
+  // Helper to check if a position is valid (not a wall)
+  const isValidPosition = (pos: Vec2): boolean => {
+    const mapX = Math.floor(pos.x);
+    const mapY = Math.floor(pos.y);
+    if (mapX < 0 || mapY < 0 || mapX >= level.width || mapY >= level.height) return false;
+    return level.tiles[mapY * level.width + mapX] === 0;
+  };
+
+  // Generate waypoints in a radius around the starting position
+  const baseRadius = 4;
+  for (let i = 0; i < numWaypoints; i++) {
+    let attempts = 0;
+    let waypoint: Vec2 | null = null;
+
+    while (attempts < 20 && !waypoint) {
+      const angle = (i / numWaypoints) * Math.PI * 2 + (Math.random() - 0.5) * 1.0;
+      const radius = baseRadius * (0.5 + Math.random() * 0.8);
+      const candidate = {
+        x: startPos.x + Math.cos(angle) * radius,
+        y: startPos.y + Math.sin(angle) * radius
+      };
+
+      if (isValidPosition(candidate)) {
+        waypoint = candidate;
+      }
+      attempts++;
+    }
+
+    if (waypoint) {
+      waypoints.push(waypoint);
+    }
+  }
+
+  // Ensure at least 3 waypoints (fallback to positions near start)
+  while (waypoints.length < 3) {
+    waypoints.push({
+      x: startPos.x + (Math.random() - 0.5) * 2,
+      y: startPos.y + (Math.random() - 0.5) * 2
+    });
+  }
+
+  return waypoints;
+}
+
+export function createEnemy(definition: EnemyDefinition, position: Vec2, id: number, level: LevelDefinition): EnemyInstance {
   return {
     id,
     definition,
     position: { ...position },
     velocity: { x: 0, y: 0 },
     health: definition.health,
-    state: 'idle',
+    state: 'patrol',
     attackTimer: 0,
     hurtTimer: 0,
     patrolDirection: Math.random() * Math.PI * 2,
+    patrolWaypoints: generatePatrolWaypoints(position, level),
+    currentWaypointIndex: 0,
+    waypointWaitTimer: 0,
     alive: true
   };
 }
@@ -24,21 +75,43 @@ export function updateEnemies(enemies: EnemyInstance[], delta: number, level: Le
   for (const enemy of enemies) {
     if (!enemy.alive) continue;
     enemy.attackTimer = Math.max(0, enemy.attackTimer - delta);
+    enemy.waypointWaitTimer = Math.max(0, enemy.waypointWaitTimer - delta);
+
     const toPlayer = sub(player.position, enemy.position);
     const dist = distance(player.position, enemy.position);
     const dir = normalize(toPlayer);
 
     const hasLOS = lineOfSight(enemy.position, player.position, level);
 
-    if (enemy.state === 'idle') {
-      if (dist < enemy.definition.aggroRange && hasLOS) {
-        enemy.state = 'chase';
-        play('swing');
+    // Check for player detection in all states except attack
+    if (enemy.state !== 'attack' && dist < enemy.definition.aggroRange && hasLOS) {
+      enemy.state = 'chase';
+      play('swing');
+    }
+
+    if (enemy.state === 'patrol') {
+      // Check if waiting at waypoint
+      if (enemy.waypointWaitTimer > 0) {
+        // While waiting, slowly rotate to scan area
+        enemy.patrolDirection += delta * 0.5;
       } else {
-        const wander = { x: Math.cos(enemy.patrolDirection), y: Math.sin(enemy.patrolDirection) };
-        enemy.position = resolveMovement(enemy.position, scale(wander, enemy.definition.speed * 0.2), delta, level);
-        if (Math.random() < 0.01) {
-          enemy.patrolDirection += (Math.random() - 0.5) * 0.5;
+        // Move to current waypoint
+        const waypoint = enemy.patrolWaypoints[enemy.currentWaypointIndex];
+        const toWaypoint = sub(waypoint, enemy.position);
+        const distToWaypoint = distance(waypoint, enemy.position);
+
+        if (distToWaypoint < 0.5) {
+          // Reached waypoint, wait and look around
+          enemy.currentWaypointIndex = (enemy.currentWaypointIndex + 1) % enemy.patrolWaypoints.length;
+          enemy.waypointWaitTimer = 1.0 + Math.random() * 1.5; // Wait 1-2.5 seconds
+          enemy.patrolDirection = Math.random() * Math.PI * 2;
+        } else {
+          // Move toward waypoint
+          const dirToWaypoint = normalize(toWaypoint);
+          const velocity = scale(dirToWaypoint, enemy.definition.speed * 0.6);
+          enemy.position = resolveMovement(enemy.position, velocity, delta, level);
+          // Update patrol direction to face movement
+          enemy.patrolDirection = Math.atan2(dirToWaypoint.y, dirToWaypoint.x);
         }
       }
     } else if (enemy.state === 'chase') {
@@ -49,11 +122,12 @@ export function updateEnemies(enemies: EnemyInstance[], delta: number, level: Le
         enemy.position = resolveMovement(enemy.position, velocity, delta, level);
       }
       if (!hasLOS && dist > enemy.definition.aggroRange * 1.2) {
-        enemy.state = 'idle';
+        enemy.state = 'patrol';
+        enemy.waypointWaitTimer = 0;
       }
     } else if (enemy.state === 'attack') {
       if (dist > 1.2) {
-        enemy.state = hasLOS ? 'chase' : 'idle';
+        enemy.state = hasLOS ? 'chase' : 'patrol';
       } else if (enemy.attackTimer <= 0) {
         damagePlayer(player, enemy.definition.damage);
         enemy.attackTimer = enemy.definition.attackCooldown;

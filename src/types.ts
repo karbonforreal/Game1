@@ -62,7 +62,7 @@ export interface EnemyDefinition {
   aggroRange: number;
 }
 
-export type EnemyMode = 'idle' | 'chase' | 'attack';
+export type EnemyMode = 'patrol' | 'chase' | 'attack';
 
 export interface EnemyInstance {
   id: number;
@@ -74,6 +74,9 @@ export interface EnemyInstance {
   attackTimer: number;
   hurtTimer: number;
   patrolDirection: number;
+  patrolWaypoints: Vec2[];
+  currentWaypointIndex: number;
+  waypointWaitTimer: number;
   alive: boolean;
 }
 
@@ -135,3 +138,5 @@ export interface HitMarker {
   duration: number;
   kind: 'enemy' | 'wall';
 }
+
+export type GameState = 'playing' | 'won' | 'lost';
