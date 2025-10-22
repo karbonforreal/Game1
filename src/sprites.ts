@@ -302,79 +302,96 @@ function createGruntSprite(): HTMLCanvasElement {
   return createCanvas(48, 64, (ctx) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    // Legs/boots - darker base
-    ctx.fillStyle = '#1a1420';
-    ctx.fillRect(8, 44, 14, 20);
-    ctx.fillRect(26, 44, 14, 20);
+    // MASSIVE LEGS - thick and imposing
+    ctx.fillStyle = '#8b0000'; // Dark red
+    ctx.fillRect(6, 42, 16, 22);
+    ctx.fillRect(26, 42, 16, 22);
 
-    // Armor body - main torso with plating
-    ctx.fillStyle = '#2d1f38';
-    ctx.fillRect(8, 24, 32, 24);
+    // Leg highlights - bright red
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(8, 44, 4, 18);
+    ctx.fillRect(28, 44, 4, 18);
 
-    // Chest armor plate - metallic purple
-    ctx.fillStyle = '#524168';
-    ctx.fillRect(12, 26, 24, 18);
+    // HUGE TORSO - demonic body
+    ctx.fillStyle = '#a00000'; // Bright crimson
+    ctx.fillRect(4, 20, 40, 26);
 
-    // Armor highlights - giving depth
-    ctx.fillStyle = '#6d5687';
-    ctx.fillRect(14, 28, 20, 2);
-    ctx.fillRect(14, 32, 8, 8);
-    ctx.fillRect(26, 32, 8, 8);
+    // Chest plate - GLOWING ORANGE
+    ctx.fillStyle = '#ff4500'; // Orange-red
+    ctx.fillRect(10, 24, 28, 18);
 
-    // Shoulder pauldrons
-    ctx.fillStyle = '#3d2e4d';
-    ctx.fillRect(6, 22, 10, 8);
-    ctx.fillRect(32, 22, 10, 8);
-    ctx.fillStyle = '#524168';
-    ctx.fillRect(7, 23, 8, 2);
-    ctx.fillRect(33, 23, 8, 2);
+    // Glowing core in center
+    ctx.fillStyle = '#ff6600';
+    ctx.fillRect(18, 28, 12, 10);
+    ctx.fillStyle = '#ff8800';
+    ctx.fillRect(20, 30, 8, 6);
+    ctx.fillStyle = '#ffaa00'; // Bright yellow-orange center
+    ctx.fillRect(22, 32, 4, 2);
 
-    // Belt/waist detail
-    ctx.fillStyle = '#4a3a2a';
-    ctx.fillRect(10, 44, 28, 4);
-    ctx.fillStyle = '#8b7355';
-    ctx.fillRect(22, 45, 4, 2);
+    // MASSIVE SHOULDERS
+    ctx.fillStyle = '#700000';
+    ctx.fillRect(2, 18, 12, 10);
+    ctx.fillRect(34, 18, 12, 10);
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(4, 20, 8, 6);
+    ctx.fillRect(36, 20, 8, 6);
 
-    // Head - skin tone
-    ctx.fillStyle = '#b89878';
-    ctx.fillRect(16, 6, 16, 18);
+    // DEMON HEAD - large and menacing
+    ctx.fillStyle = '#600000'; // Very dark red
+    ctx.fillRect(12, 4, 24, 18);
 
-    // Helmet/visor top
-    ctx.fillStyle = '#2d1f38';
-    ctx.fillRect(14, 4, 20, 6);
-    ctx.fillStyle = '#524168';
-    ctx.fillRect(15, 5, 18, 3);
+    // HUGE HORNS
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(10, 2, 4, 8);
+    ctx.fillRect(34, 2, 4, 8);
+    ctx.fillStyle = '#4a4a4a';
+    ctx.fillRect(11, 3, 2, 6);
+    ctx.fillRect(35, 3, 2, 6);
 
-    // Face details - eyes with glowing effect
-    ctx.fillStyle = '#1a0a0a';
-    ctx.fillRect(18, 12, 4, 5);
-    ctx.fillRect(26, 12, 4, 5);
-    // Eye glow
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(19, 14, 2, 2);
-    ctx.fillRect(27, 14, 2, 2);
+    // MASSIVE GLOWING EYES - super bright
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(16, 10, 6, 6);
+    ctx.fillRect(26, 10, 6, 6);
+    // Inner glow
+    ctx.fillStyle = '#ff6600';
+    ctx.fillRect(17, 11, 4, 4);
+    ctx.fillRect(27, 11, 4, 4);
+    // Brightest center
+    ctx.fillStyle = '#ffff00'; // BRIGHT YELLOW
+    ctx.fillRect(18, 12, 2, 2);
+    ctx.fillRect(28, 12, 2, 2);
 
-    // Nose bridge
-    ctx.fillStyle = '#9a7858';
-    ctx.fillRect(23, 16, 2, 4);
+    // FANGED MOUTH - open and threatening
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(18, 16, 12, 5);
+    // Sharp teeth
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(19, 16, 2, 3);
+    ctx.fillRect(22, 16, 2, 3);
+    ctx.fillRect(25, 16, 2, 3);
+    ctx.fillRect(28, 16, 2, 3);
+    ctx.fillRect(20, 18, 2, 3);
+    ctx.fillRect(26, 18, 2, 3);
 
-    // Mouth - menacing
-    ctx.fillStyle = '#2a0a0a';
-    ctx.fillRect(20, 20, 8, 3);
-    // Teeth
-    ctx.fillStyle = '#e8d8c8';
-    ctx.fillRect(21, 20, 2, 2);
-    ctx.fillRect(25, 20, 2, 2);
+    // Clawed hands/arms extending from sides
+    ctx.fillStyle = '#8b0000';
+    ctx.fillRect(0, 26, 6, 12);
+    ctx.fillRect(42, 26, 6, 12);
+    // Claws
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 36, 2, 4);
+    ctx.fillRect(2, 36, 2, 4);
+    ctx.fillRect(46, 36, 2, 4);
 
-    // Armor damage/weathering details
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.fillRect(13, 40, 3, 2);
-    ctx.fillRect(32, 35, 2, 3);
+    // Metallic armor details - BRIGHT
+    ctx.fillStyle = '#ffcc00'; // Gold accents
+    ctx.fillRect(12, 22, 24, 2);
+    ctx.fillRect(16, 44, 16, 2);
 
-    // Edge highlights for 3D effect
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.fillRect(12, 26, 2, 16);
-    ctx.fillRect(17, 7, 2, 8);
+    // Edge glow effect
+    ctx.fillStyle = 'rgba(255, 100, 0, 0.5)';
+    ctx.fillRect(6, 22, 2, 22);
+    ctx.fillRect(40, 22, 2, 22);
   });
 }
 
