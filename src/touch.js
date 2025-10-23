@@ -260,6 +260,10 @@ export class TouchControls {
     this.applyStyles();
   }
 
+  reset() {
+    this.resetState();
+  }
+
   resetState() {
     this.movePointer = null;
     this.lookPointer = null;
@@ -267,6 +271,10 @@ export class TouchControls {
     this.fireHeld = false;
     this.interactHeld = false;
     this.weaponQueued = null;
+    this.pausedRequested = false;
+    this.fireButton.removeAttribute('data-active');
+    this.interactButton.removeAttribute('data-active');
+    this.weaponButtons.forEach((btn) => btn.removeAttribute('data-active'));
   }
 
   getMoveVector() {

@@ -61,6 +61,17 @@ function injectStyles() {
     .ui-overlay input[type="range"] {
       flex: 1;
     }
+    .ui-overlay input[type="number"] {
+      width: 80px;
+      padding: 6px 8px;
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 6px;
+      border: none;
+      text-align: right;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
     .ui-overlay .actions {
       display: flex;
       justify-content: space-between;
@@ -121,6 +132,8 @@ async function bootstrap() {
 
   const ui = new UIManager(settings, {
     onResume: () => {
+      input.reset();
+      touchControls.reset();
       paused = false;
     },
     onSettingsChanged: (newSettings) => {
