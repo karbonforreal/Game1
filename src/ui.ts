@@ -1,6 +1,8 @@
 import { defaultSettings, saveSettings } from './config';
 import type { Settings } from './types';
 
+const SENSITIVITY_DISPLAY_SCALE = 10000;
+
 interface UIHooks {
   onResume: () => void;
   onSettingsChanged: (settings: Settings) => void;
@@ -37,6 +39,7 @@ export class UIManager {
     this.optionsOverlay.querySelector('[data-action="close"]')?.addEventListener('click', () => this.closeOptions());
     this.optionsOverlay.querySelector('[data-action="reset"]')?.addEventListener('click', () => this.resetSettings());
     this.optionsOverlay.addEventListener('input', (event) => this.onOptionsInput(event));
+    this.optionsOverlay.addEventListener('change', (event) => this.onOptionsInput(event));
 
     this.hideAll();
   }
@@ -46,7 +49,7 @@ export class UIManager {
     return `
       <div class="panel">
         <h1>Options</h1>
-        <label>Sensitivity <input type="range" min="0.001" max="0.008" step="0.0005" name="lookSensitivity" value="${s.lookSensitivity}"></label>
+        <label>Sensitivity <input type="number" min="0" max="100" step="1" name="lookSensitivity" value="${this.toSensitivityInput(s.lookSensitivity)}" inputmode="numeric"></label>
         <label>Joystick Size <input type="range" min="100" max="180" step="5" name="joystickSize" value="${s.joystickSize}"></label>
         <label>UI Opacity <input type="range" min="0.4" max="1" step="0.05" name="uiOpacity" value="${s.uiOpacity}"></label>
         <label>Volume <input type="range" min="0" max="1" step="0.05" name="volume" value="${s.volume}"></label>
@@ -108,6 +111,16 @@ export class UIManager {
           this.settings = { ...this.settings, joystickSize: Number(target.value) };
         }
         break;
+      case 'number':
+        if (target.name === 'lookSensitivity') {
+          const numericValue = this.parseSensitivityInput(target.value);
+          target.value = String(numericValue);
+          this.settings = {
+            ...this.settings,
+            lookSensitivity: numericValue / SENSITIVITY_DISPLAY_SCALE
+          };
+        }
+        break;
       case 'checkbox':
         this.settings = { ...this.settings, [target.name]: target.checked } as Settings;
         break;
@@ -118,5 +131,14 @@ export class UIManager {
 
   getSettings() {
     return this.settings;
+  }
+
+  private toSensitivityInput(value: number) {
+    return Math.round(value * SENSITIVITY_DISPLAY_SCALE);
+  }
+
+  private parseSensitivityInput(raw: string) {
+    const numeric = Math.round(Number(raw) || 0);
+    return Math.min(100, Math.max(0, numeric));
   }
 }
