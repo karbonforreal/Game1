@@ -49,9 +49,16 @@ export class Renderer {
     const width = this.view.width;
     const height = this.view.height;
     ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = config.ceilingColor;
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, height / 2);
+    skyGradient.addColorStop(0, '#05060f');
+    skyGradient.addColorStop(1, config.ceilingColor);
+    ctx.fillStyle = skyGradient;
     ctx.fillRect(0, 0, width, height / 2);
-    ctx.fillStyle = config.floorColor;
+
+    const floorGradient = ctx.createLinearGradient(0, height / 2, 0, height);
+    floorGradient.addColorStop(0, '#271c36');
+    floorGradient.addColorStop(1, config.floorColor);
+    ctx.fillStyle = floorGradient;
     ctx.fillRect(0, height / 2, width, height / 2);
 
     const posX = player.position.x;
@@ -198,6 +205,58 @@ export class Renderer {
         ctx.lineTo(screenX + innerSize, centerY - innerSize);
         ctx.stroke();
       }
+      ctx.restore();
+    }
+
+    const vignette = ctx.createRadialGradient(
+      width / 2,
+      height / 2,
+      Math.min(width, height) * 0.25,
+      width / 2,
+      height / 2,
+      Math.max(width, height) * 0.75
+    );
+    vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vignette.addColorStop(1, 'rgba(5, 0, 12, 0.45)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, width, height);
+
+    if (player.isAttacking) {
+      const cooldown = weapon.cooldown || 0.001;
+      const normalized = Math.min(1, Math.max(0, player.attackTimer / cooldown));
+      const intensity = Math.pow(normalized, 0.65);
+      const centerX = width / 2;
+      const centerY = height * 0.85;
+
+      let innerColor = 'rgba(255, 200, 160, 0.85)';
+      let arcColor = '#ffd9a0';
+      if (weapon.id === 'knife') {
+        innerColor = 'rgba(150, 255, 235, 0.8)';
+        arcColor = '#a0fff0';
+      } else if (weapon.id === 'punch') {
+        innerColor = 'rgba(255, 130, 150, 0.85)';
+        arcColor = '#ff98ad';
+      }
+
+      const overlay = ctx.createRadialGradient(centerX, centerY, width * 0.05, centerX, centerY, width * 0.45);
+      overlay.addColorStop(0, innerColor);
+      overlay.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.65 * intensity;
+      ctx.fillStyle = overlay;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = arcColor;
+      ctx.lineWidth = 4;
+      ctx.globalAlpha = 0.35 * intensity;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, width * 0.18, Math.PI * 1.05, Math.PI * 1.45);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, width * 0.23, Math.PI * 1.1, Math.PI * 1.5);
+      ctx.stroke();
       ctx.restore();
     }
 

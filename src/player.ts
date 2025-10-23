@@ -38,7 +38,7 @@ export function updatePlayer(player: PlayerState, input: InputState, delta: numb
   const strafe = input.strafe;
 
   const dir = player.direction;
-  const right = { x: dir.y, y: -dir.x };
+  const right = { x: -dir.y, y: dir.x };
   const velocity = {
     x: dir.x * forward * speed + right.x * strafe * strafeSpeed,
     y: dir.y * forward * speed + right.y * strafe * strafeSpeed
