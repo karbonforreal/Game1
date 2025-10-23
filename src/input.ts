@@ -184,4 +184,12 @@ export class InputManager {
     this.debugToggle = false;
     return state;
   }
+
+  requestPointerLock() {
+    if (this.pointerLocked || !this.shouldPointerLock()) return;
+    const canvas = document.querySelector('canvas');
+    if (canvas && typeof canvas.requestPointerLock === 'function') {
+      canvas.requestPointerLock();
+    }
+  }
 }

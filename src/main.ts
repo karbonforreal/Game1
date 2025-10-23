@@ -123,6 +123,7 @@ async function bootstrap() {
   const ui = new UIManager(settings, {
     onResume: () => {
       paused = false;
+      input.requestPointerLock();
     },
     onSettingsChanged: (newSettings) => {
       settings = { ...newSettings };
