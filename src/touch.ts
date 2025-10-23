@@ -304,7 +304,7 @@ export class TouchControls {
     }
     const move = this.getMoveVector();
     const forward = -move.y;
-    const strafe = -move.x;
+    const strafe = move.x;
     const turning = clamp(this.lookDelta * 0.003, -0.45, 0.45);
     const fire = this.fireHeld;
     const interact = this.interactHeld;
