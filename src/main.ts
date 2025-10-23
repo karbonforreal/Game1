@@ -243,7 +243,8 @@ async function bootstrap() {
         id: enemy.id,
         image: enemy.definition.sprite,
         position: enemy.position,
-        size: 1,
+        size: 1.15,
+        offsetY: -0.1,
         isBillboard: true,
         distance: 0,
         type: 'enemy'
